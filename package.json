@@ -4,7 +4,8 @@
 	"repository": "https://github.com/indeni/cloudrail-vscode-extension",
 	"displayName": "Cloudrail IaC Scanning",
 	"description": "A compliance automation tool for infrastructure-as-code, uses a context-engine to analyze your IaC for security issues, highlighting only those that are a true risk to your cloud environment",
-	"version": "0.0.1",
+	"icon": "images/cloudrail_logo.png",
+	"version": "0.0.2",
 	"engines": {
 		"vscode": "^1.60.0"
 	},
