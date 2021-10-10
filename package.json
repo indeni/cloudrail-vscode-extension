@@ -1,5 +1,7 @@
 {
-  "name": "cloudrail-iac-scanning",
+  	"name": "cloudrail-iac-scanning",	
+	"publisher": "Cloudrail",
+	"repository": "https://github.com/indeni/cloudrail-vscode-extension",
 	"displayName": "Cloudrail IaC Scanning",
 	"description": "A compliance automation tool for infrastructure-as-code, uses a context-engine to analyze your IaC for security issues, highlighting only those that are a true risk to your cloud environment",
 	"version": "0.0.1",
@@ -7,10 +9,21 @@
 		"vscode": "^1.60.0"
 	},
 	"categories": [
+		"Testing",
+		"Linters",
 		"Other"
-	],
+	  ],
+	  "keywords": [
+		"terraform",
+		"IaC",
+		"Infrastracture-as-code",
+		"cloud-security",
+		"aws",
+		"azure",
+		"gcp"
+	  ],
 	"activationEvents": [
-        "onCommand:cloudrail-iac-scanning.helloWorld"
+        "*"
 	],
 	"main": "./dist/extension.js",
 	"contributes": {
