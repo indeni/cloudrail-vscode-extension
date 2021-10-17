@@ -10,7 +10,7 @@ import { initializeEnvironment } from './commands/init';
 // your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
 	console.log('Congratulations, your extension "cloudrail-iac-scanning" is now active!');
-	initializeEnvironment();
+	initializeEnvironment(false);
 
 	const commands = [
 		vscode.commands.registerCommand('cloudrail.version', () => {
@@ -26,7 +26,7 @@ export function activate(context: vscode.ExtensionContext) {
 		}),
 
 		vscode.commands.registerCommand('cloudrail.init', () => {
-			initializeEnvironment();
+			initializeEnvironment(true);
 		})
 	];
 
