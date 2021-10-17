@@ -27,7 +27,6 @@ export function initializeEnvironment(showProgress: boolean): void {
                 try {
                     setCloudrailVersion();
                     reportProgress(progress, showProgress, 80, 'Initialization Complete');
-                    progress.report({ increment: 80, message: 'Initialization Complete' });
                 } catch(e) { 
                     try {
                         reportProgress(progress, showProgress, 30, 'Installing Cloudrail on the Virtual Environment');
