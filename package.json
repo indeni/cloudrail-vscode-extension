@@ -44,10 +44,6 @@
 			{
 				"command": "cloudrail.init",
 				"title": "Cloudrail Init"
-			},
-			{
-				"command": "cloudrail.update",
-				"title": "Cloudrail Update"
 			}
 		],
 		"configuration": {

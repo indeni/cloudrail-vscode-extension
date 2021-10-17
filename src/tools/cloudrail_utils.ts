@@ -26,10 +26,4 @@ export class CloudrailUtils {
     static installCloudrail() {
         execSync(`${CloudrailUtils.sourceCmd} && pip3 install cloudrail --no-input`, { encoding: 'utf8'});
     }
-
-    static updateCloudrail(callback: (exitCode: number) => void) {
-        let proc = shell.exec(`${CloudrailUtils.sourceCmd} && pip3 install cloudrail --upgrade --no-input`, {async: true});
-
-        proc.on('close', callback);
-    }
 }

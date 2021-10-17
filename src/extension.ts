@@ -4,7 +4,6 @@ import * as vscode from 'vscode';
 import { cloudrailVersion } from './commands/version';
 import { scan } from './commands/scan';
 import { initializeEnvironment } from './commands/init';
-import { cloudrailUpdate } from './commands/update';
 
 
 // this method is called when your extension is activated
@@ -28,10 +27,6 @@ export function activate(context: vscode.ExtensionContext) {
 
 		vscode.commands.registerCommand('cloudrail.init', () => {
 			initializeEnvironment(true);
-		}),
-
-		vscode.commands.registerCommand('cloudrail.update', () => {
-			cloudrailUpdate();
 		})
 	];
 
