@@ -17,6 +17,7 @@ export function initializeEnvironment(showProgress: boolean): void {
             CloudrailUtils.createVenv((exitCode: number) => {
                 console.log(`venv creation process exited with code ${exitCode}`);
                 if (exitCode !== 0) {
+                    resolve();
                     vscode.window.showErrorMessage(`Venv creation failed with exit code ${exitCode}`);
                     return;
                 }
@@ -35,6 +36,7 @@ export function initializeEnvironment(showProgress: boolean): void {
                         setCloudrailVersion();
                         reportProgress(progress, showProgress, 10, 'Initialization Complete');
                     } catch(e) {
+                        resolve();
                         vscode.window.showErrorMessage(`Failed to install cloudrail - exit code: ${exitCode}\nError:${e}`);
                     }
                 }
