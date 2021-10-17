@@ -7,7 +7,7 @@ export function initializeEnvironment(showProgress: boolean): void {
     vscode.window.withProgress({
         location: vscode.ProgressLocation.Notification,
         cancellable: true
-    }, async (progress, token) => {
+    }, (progress, token) => {
         token.onCancellationRequested(() => {
             console.log("Cancelled virtual environment creation");
         });
