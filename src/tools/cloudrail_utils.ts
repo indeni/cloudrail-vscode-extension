@@ -8,7 +8,7 @@ import { Versioning } from './versioning';
 
 
 export class CloudrailUtils {
-     static venvPath: string;
+    private static venvPath: string;
     private static sourceCmd: string;
 
     static init(venvBasePath: string): void {
@@ -43,7 +43,6 @@ export class CloudrailUtils {
             console.log('Cloudrail is not installed');
             return;
         }
-
     }
 
     static async installCloudrail() {
