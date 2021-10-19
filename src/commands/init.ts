@@ -1,9 +1,7 @@
 import * as vscode from 'vscode';
 import { CloudrailUtils } from "../tools/cloudrail_utils";
 
-export function initializeEnvironment(showProgress: boolean, 
-                                      onFulfilled: () => void = () => {},
-                                      onRejected: () => void = () => {}): void {
+export function initializeEnvironment(showProgress: boolean): void {
     if (!areMandatoryFieldsSet()) {
         vscode.commands.executeCommand('workbench.action.openSettings', 'cloudrail');
     }
