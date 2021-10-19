@@ -2,11 +2,13 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 import * as shell from 'shelljs';
 import * as fs from 'fs';
-import {execSync} from 'child_process';
+import {exec, ExecOptions, execSync} from 'child_process';
+import * as util from 'util';
+import { Versioning } from './versioning';
 
 
 export class CloudrailUtils {
-    private static venvPath: string;
+     static venvPath: string;
     private static sourceCmd: string;
 
     static init(venvBasePath: string): void {
@@ -14,36 +16,51 @@ export class CloudrailUtils {
         CloudrailUtils.sourceCmd = `source "${CloudrailUtils.venvPath}/bin/activate"`;
     }
 
-    static createVenv(callback: (exitCode: number) => void) {
-        
-        fs.stat(CloudrailUtils.venvPath, (error, stats) => {
-            if (error) {
-                fs.mkdirSync(CloudrailUtils.venvPath, { recursive: true });
-                let venvProc = shell.exec(`python3 -m venv "${CloudrailUtils.venvPath}"`, {async: true});
-
-                venvProc.stderr?.on('data', (data) => {
-                    vscode.window.showErrorMessage(`Venv creation output an error: ${data}`);
-                });
-        
-                venvProc.on('close', callback);
-            } else {
-                callback(0);
-            }
-        });
+    static async createVenv(): Promise<void> {
+        console.log('Checking if venv exists');
+        if (fs.existsSync(CloudrailUtils.venvPath)) {
+            console.log('Venv exists');
+        } else {
+            console.log('Venv does not exist, creating..');
+            await util.promisify(fs.mkdir)(CloudrailUtils.venvPath, { recursive: true});
+            console.log('Creating venv dir');
+            await util.promisify(exec)(`python3 -m venv "${CloudrailUtils.venvPath}"`);
+            console.log('Created venv');
+        }
     }
 
-    // Throws exception when cloudrail does not exist
-    static getCloudrailVersion() {
-        return execSync(`${CloudrailUtils.sourceCmd} && cloudrail --version`, { encoding: 'utf8'});
+    static async getCloudrailVersion(): Promise<string | undefined> {
+        console.log('Attempting to get cloudrail version');
+        try {
+            let versionOutput = await util.promisify(exec)(`${CloudrailUtils.sourceCmd} && cloudrail --version`);
+            if (versionOutput.stderr) { 
+                console.log(`Unexpected error when checking cloudrail version: ${versionOutput.stderr}`);
+                return Promise.reject(versionOutput.stderr);
+            };
+            console.log(versionOutput.stdout);
+            return versionOutput.stdout;
+        } catch(e) {
+            console.log('Cloudrail is not installed');
+            return;
+        }
+
     }
 
-    static installCloudrail() {
-        execSync(`${CloudrailUtils.sourceCmd} && pip3 install cloudrail --no-input`, { encoding: 'utf8'});
+    static async installCloudrail() {
+        console.log('Installing cloudrail pip package');
+        await util.promisify(exec)(`${CloudrailUtils.sourceCmd} && pip3 install cloudrail --no-input`);
+        console.log('Finished installing cloudrail pip package');
     }
 
-    static updateCloudrail(callback: (exitCode: number) => void) {
-        let proc = shell.exec(`${CloudrailUtils.sourceCmd} && pip3 install cloudrail --upgrade --no-input`, {async: true});
+    static async setCloudrailVersion() {
+        let version: string | undefined = await CloudrailUtils.getCloudrailVersion();
+        if (version) {
+            Versioning.setCloudrailVersion(version);
+            console.log(Versioning.getCloudrailVersion());
+        }
+    }
 
-        proc.on('close', callback);
+    static async updateCloudrail(): Promise<void> {
+        await util.promisify(shell.exec)(`${CloudrailUtils.sourceCmd} && pip3 install cloudrail --upgrade --no-input`);
     }
 }

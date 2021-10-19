@@ -7,17 +7,16 @@ export function cloudrailUpdate(): void {
         location: vscode.ProgressLocation.Notification,
         cancellable: false
     }, (progress) => {
-        const p = new Promise<void>(resolve => { 
+        return new Promise<void>(async (resolve) => { 
             progress.report( { increment: 10, message: 'Updating Cloudrail...'});
-            
-            CloudrailUtils.updateCloudrail((exitCode) => {
-                Versioning.setCloudrailVersion(CloudrailUtils.getCloudrailVersion());
-                console.log(`Cloudrail updated to version ${Versioning.getCloudrailVersion()}`);
+
+            CloudrailUtils.updateCloudrail()
+            .then( async () => {
+                Versioning.setCloudrailVersion(await CloudrailUtils.getCloudrailVersion());
+                progress.report( { increment: 90, message: `Cloudrail version: ${Versioning.getCloudrailVersion()}`});
+                await new Promise((resolve) => setTimeout(resolve, 2000));
                 resolve();
             });
-            
         });
-        
-        return p;
     });
 }
