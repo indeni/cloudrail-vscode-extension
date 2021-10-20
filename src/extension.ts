@@ -5,7 +5,7 @@ import { CloudrailUtils } from './tools/cloudrail_utils';
 import { cloudrailVersion } from './commands/version';
 import { scan } from './commands/scan';
 import { initializeEnvironment } from './commands/init';
-import { cloudrailUpdate } from './commands/update';
+import { updateCloudrail } from './commands/update';
 
 
 // this method is called when your extension is activated
@@ -13,7 +13,7 @@ import { cloudrailUpdate } from './commands/update';
 export function activate(context: vscode.ExtensionContext) {
 	console.log('Congratulations, your extension "cloudrail-iac-scanning" is now active!');
 	CloudrailUtils.init(context.globalStorageUri.path);
-	initializeEnvironment(false);
+	initializeEnvironment(false, false);
 
 	const commands = [
 		vscode.commands.registerCommand('cloudrail.version', () => {
@@ -29,11 +29,11 @@ export function activate(context: vscode.ExtensionContext) {
 		}),
 
 		vscode.commands.registerCommand('cloudrail.init', () => {
-			initializeEnvironment(true);
+			initializeEnvironment(true, true);
 		}),
 
 		vscode.commands.registerCommand('cloudrail.update', () => {
-			cloudrailUpdate();
+			updateCloudrail();
 		})
 	];
 

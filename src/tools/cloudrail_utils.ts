@@ -1,8 +1,6 @@
 import * as path from 'path';
-import * as vscode from 'vscode';
-import * as shell from 'shelljs';
 import * as fs from 'fs';
-import {exec, ExecOptions, execSync} from 'child_process';
+import {exec} from 'child_process';
 import * as util from 'util';
 import { Versioning } from './versioning';
 
@@ -18,26 +16,25 @@ export class CloudrailUtils {
 
     static async createVenv(): Promise<void> {
         console.log('Checking if venv exists');
-        if (fs.existsSync(CloudrailUtils.venvPath)) {
+        if (await CloudrailUtils.venvExists() && await CloudrailUtils.pipInstalledInVenv()) {
             console.log('Venv exists');
         } else {
             console.log('Venv does not exist, creating..');
-            await util.promisify(fs.mkdir)(CloudrailUtils.venvPath, { recursive: true});
+            await util.promisify(fs.mkdir)(CloudrailUtils.venvPath, { recursive: true });
             console.log('Creating venv dir');
-            await util.promisify(exec)(`python3 -m venv "${CloudrailUtils.venvPath}"`);
+            await CloudrailUtils.asyncExec(`python3 -m venv "${CloudrailUtils.venvPath}"`);
             console.log('Created venv');
         }
     }
 
     static async getCloudrailVersion(): Promise<string | undefined> {
-        console.log('Attempting to get cloudrail version');
         try {
-            let versionOutput = await util.promisify(exec)(`${CloudrailUtils.sourceCmd} && cloudrail --version`);
+            let versionOutput = await CloudrailUtils.runCloudrail(`--version`);
             if (versionOutput.stderr) { 
                 console.log(`Unexpected error when checking cloudrail version: ${versionOutput.stderr}`);
                 return Promise.reject(versionOutput.stderr);
             };
-            console.log(versionOutput.stdout);
+
             return versionOutput.stdout;
         } catch(e) {
             console.log('Cloudrail is not installed');
@@ -45,21 +42,61 @@ export class CloudrailUtils {
         }
     }
 
-    static async installCloudrail() {
+    static async installCloudrail(): Promise<void> {
         console.log('Installing cloudrail pip package');
-        await util.promisify(exec)(`${CloudrailUtils.sourceCmd} && pip3 install cloudrail --no-input`);
+        await CloudrailUtils.runVenvPip('install cloudrail --no-input');
         console.log('Finished installing cloudrail pip package');
     }
 
-    static async setCloudrailVersion() {
+    static async setCloudrailVersion(): Promise<void> {
         let version: string | undefined = await CloudrailUtils.getCloudrailVersion();
         if (version) {
             Versioning.setCloudrailVersion(version);
-            console.log(Versioning.getCloudrailVersion());
         }
     }
 
     static async updateCloudrail(): Promise<void> {
-        await util.promisify(shell.exec)(`${CloudrailUtils.sourceCmd} && pip3 install cloudrail --upgrade --no-input`);
+        console.log('Updating cloudrail');
+        await CloudrailUtils.runVenvPip('install cloudrail --upgrade --no-input');
+        console.log('Cloudrail updated');
+    }
+
+    private static asyncExec(command: string): Promise<{stdout: string, stderr: string}> {
+        return util.promisify(exec)(command);
+    }
+
+    static async isPythonInstalled(): Promise<boolean> {
+        try {
+            await CloudrailUtils.asyncExec('python3 --version');
+            return true;
+        } catch {
+            return false;
+        }
+    }
+
+    private static async venvExists(): Promise<boolean> {
+        try {
+            await CloudrailUtils.asyncExec(CloudrailUtils.sourceCmd);
+            return true;
+        } catch {
+            return false;
+        }
+    }
+
+    private static async pipInstalledInVenv(): Promise<boolean> {
+        try {
+            await CloudrailUtils.runVenvPip('--version');
+            return true;
+        } catch {
+            return false;
+        }
+    }
+
+    private static async runVenvPip(command: string): Promise<{stdout: string, stderr: string}> {
+        return await CloudrailUtils.asyncExec(`${CloudrailUtils.sourceCmd} && python3 -m pip ${command}`);
+    }
+
+    private static async runCloudrail(command: string): Promise<{stdout: string, stderr: string}> {
+        return await CloudrailUtils.asyncExec(`${CloudrailUtils.sourceCmd} && cloudrail ${command}`);
     }
 }

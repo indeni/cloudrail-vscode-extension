@@ -2,7 +2,7 @@ import { Versioning } from "../tools/versioning";
 import * as vscode from 'vscode';
 import { CloudrailUtils } from "../tools/cloudrail_utils";
 
-export function cloudrailUpdate(): void {
+export function updateCloudrail(): void {
     vscode.window.withProgress({
         location: vscode.ProgressLocation.Notification,
         cancellable: false
