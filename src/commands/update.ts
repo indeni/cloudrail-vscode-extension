@@ -1,6 +1,6 @@
 import { Versioning } from "../tools/versioning";
 import * as vscode from 'vscode';
-import { CloudrailUtils } from "../tools/cloudrail_utils";
+import { CloudrailRunner } from "../cloudrail_runner";
 
 export function updateCloudrail(): void {
     vscode.window.withProgress({
@@ -10,9 +10,9 @@ export function updateCloudrail(): void {
         return new Promise<void>(async (resolve) => { 
             progress.report( { increment: 10, message: 'Updating Cloudrail...'});
 
-            CloudrailUtils.updateCloudrail()
+            CloudrailRunner.updateCloudrail()
             .then( async () => {
-                Versioning.setCloudrailVersion(await CloudrailUtils.getCloudrailVersion());
+                Versioning.setCloudrailVersion(await CloudrailRunner.getCloudrailVersion());
                 progress.report( { increment: 90, message: `Cloudrail version: ${Versioning.getCloudrailVersion()}`});
                 await new Promise((resolve) => setTimeout(resolve, 2000));
                 resolve();

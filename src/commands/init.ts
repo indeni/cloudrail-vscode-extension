@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { CloudrailUtils } from "../tools/cloudrail_utils";
+import { CloudrailRunner } from "../cloudrail_runner";
 import { handleUnsetMandatoryFields } from '../tools/configuration';
 
 let initializationInProgress = false;
@@ -26,26 +26,26 @@ export async function initializeEnvironment(showProgress: boolean, initSettings:
         cancellable: true
     }, async (progress, token) => {
 
-        if (!await CloudrailUtils.isPythonInstalled()) {
+        if (!await CloudrailRunner.isPythonInstalled()) {
             vscode.window.showErrorMessage('Missing prerequisite: python. please install either python3.8, or python3.9 from https://www.python.org/downloads/');
             return;
         }
 
         await new Promise<void>((resolve) => {
             reportProgress(progress, showProgress, 20, 'Creating virtual environment if needed...');
-            CloudrailUtils.createVenv()
+            CloudrailRunner.createVenv()
             .then(() => {checkCancellation(token);})
             .then( async () => {
-                if (await CloudrailUtils.getCloudrailVersion()) {
+                if (await CloudrailRunner.getCloudrailVersion()) {
                     reportProgress(progress, showProgress, 70, 'Cloudrail already installed');
                 } else {
                     reportProgress(progress, showProgress, 10, 'Installing Cloudrail...');
-                    await CloudrailUtils.installCloudrail();
+                    await CloudrailRunner.installCloudrail();
                 }
             })
             .then(() => {checkCancellation(token);})
             .then( async () => {
-                await CloudrailUtils.setCloudrailVersion();
+                await CloudrailRunner.setCloudrailVersion();
             })
             .then(() => {checkCancellation(token);})
             .then( async () => {

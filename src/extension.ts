@@ -1,7 +1,7 @@
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
-import { CloudrailUtils } from './tools/cloudrail_utils';
+import { CloudrailRunner } from './cloudrail_runner';
 import { cloudrailVersion } from './commands/version';
 import { scan } from './commands/scan';
 import { initializeEnvironment } from './commands/init';
@@ -12,7 +12,7 @@ import { updateCloudrail } from './commands/update';
 // your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
 	console.log('Congratulations, your extension "cloudrail-iac-scanning" is now active!');
-	CloudrailUtils.init(context.globalStorageUri.path);
+	CloudrailRunner.init(context.globalStorageUri.path);
 	initializeEnvironment(false, false);
 
 	const commands = [
