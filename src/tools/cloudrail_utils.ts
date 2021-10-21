@@ -16,7 +16,7 @@ export class CloudrailUtils {
 
     static async createVenv(): Promise<void> {
         console.log('Checking if venv exists');
-        if (await CloudrailUtils.venvExists() && await CloudrailUtils.pipInstalledInVenv()) {
+        if (await CloudrailUtils.venvExists() && await CloudrailUtils.isPipInstalledInVenv()) {
             console.log('Venv exists');
         } else {
             console.log('Venv does not exist, creating..');
@@ -67,8 +67,8 @@ export class CloudrailUtils {
 
     static async isPythonInstalled(): Promise<boolean> {
         try {
-            await CloudrailUtils.asyncExec('python3 --version');
-            return true;
+            const version = (await CloudrailUtils.asyncExec('python3 --version')).stdout.split(' ')[1];
+            return version.startsWith('3.8') || version.startsWith('3.9');
         } catch {
             return false;
         }
@@ -83,7 +83,7 @@ export class CloudrailUtils {
         }
     }
 
-    private static async pipInstalledInVenv(): Promise<boolean> {
+    private static async isPipInstalledInVenv(): Promise<boolean> {
         try {
             await CloudrailUtils.runVenvPip('--version');
             return true;

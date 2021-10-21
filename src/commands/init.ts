@@ -27,7 +27,7 @@ export async function initializeEnvironment(showProgress: boolean, initSettings:
     }, async (progress, token) => {
 
         if (!await CloudrailUtils.isPythonInstalled()) {
-            vscode.window.showErrorMessage('Missing prerequisite: python. please install either python3.7, python3.8, or python3.9 from https://www.python.org/downloads/');
+            vscode.window.showErrorMessage('Missing prerequisite: python. please install either python3.8, or python3.9 from https://www.python.org/downloads/');
             return;
         }
 
