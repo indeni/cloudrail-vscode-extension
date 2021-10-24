@@ -44,6 +44,10 @@
 			{
 				"command": "cloudrail.init",
 				"title": "Cloudrail Init"
+			},
+			{
+				"command": "cloudrail.update",
+				"title": "Cloudrail Update"
 			}
 		],
 		"configuration": {
@@ -52,23 +56,23 @@
 			"properties": {
 				"cloudrail.ApiKey": {
 					"type": "string",
-					"description": "The API Key used to authenticate to cloudrail"
+					"description": "[MANDATORY] The API Key used to authenticate to cloudrail"
 				},
 				"cloudrail.TerraformWorkingDirectory": {
 					"type": "string",
-					"description": "The root directory of your terraform project"
+					"description": "[MANDATORY] The root directory of your terraform project"
 				},
 				"cloudrail.CloudAccountId": {
 					"type": "string",
-					"description": "Your cloud account id"
+					"description": "[OPTIONAL] Your cloud account id"
 				},
 				"cloudrail.CloudrailPolicyId": {
 					"type": "string",
-					"description": "Cloudrail policy id"
+					"description": "[OPTIONAL] Cloudrail policy id"
 				},
 				"cloudrail.AwsDefaultRegion": {
 					"type": "string",
-					"description": "Cloudrail will use this region as the default region if not explicitly provided, or not set in AWS_DEFAULT_REGION/AWS_REGION environment variables"
+					"description": "[OPTIONAL] Cloudrail will use this region as the default region if not explicitly provided, or not set in AWS_DEFAULT_REGION/AWS_REGION environment variables"
 				}
 			}
 		}
@@ -88,6 +92,7 @@
 		"@types/glob": "^7.1.4",
 		"@types/mocha": "^9.0.0",
 		"@types/node": "14.x",
+		"@types/shelljs": "^0.8.9",
 		"@types/vscode": "^1.60.0",
 		"@typescript-eslint/eslint-plugin": "^4.31.1",
 		"@typescript-eslint/parser": "^4.31.1",
@@ -99,5 +104,8 @@
 		"typescript": "^4.4.3",
 		"webpack": "^5.52.1",
 		"webpack-cli": "^4.8.0"
+	},
+	"dependencies": {
+		"shelljs": "^0.8.4"
 	}
 }
