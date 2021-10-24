@@ -116,7 +116,7 @@ export class CloudrailRunner {
         run.stdout?.on('data', (data: string) => {
             console.log(`cloudrail run: ${data}`);
             stdout += data;
-            let match = data.match(/https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)/g);
+            let match = data.match(/https:\/\/(web\.[a-z-.]*cloudrail\.app\/environments\/assessments\/[0-9A-Fa-f]{8}(?:-[0-9A-Fa-f]{4}){3}-[0-9A-Fa-f]{12})/g);
             if (match) {
                 assessmentLink = match[0];
             }

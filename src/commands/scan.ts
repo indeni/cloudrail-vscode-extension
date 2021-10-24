@@ -1,39 +1,10 @@
-/* eslint-disable @typescript-eslint/naming-convention */
 import * as vscode from 'vscode';
 import { CloudrailRunner, CloudrailRunResponse } from '../cloudrail_runner';
 import { getUnsetMandatoryFields, getConfig } from '../tools/configuration';
 import { initializeEnvironment } from './init';
-import * as fs from 'fs';
-import * as util from 'util';
 import * as path from 'path';
-
-
-interface IacResourceMetadata {
-    file_name: string;
-    start_line: number;
-    end_line: number;
-}
-
-
-interface IacEntity {
-    iac_resource_metadata: IacResourceMetadata;
-}
-
-
-interface IssueItem {
-    evidence: string;
-    exposed_entity: IacEntity;
-    violating_entity: IacEntity;
-}
-
-
-interface RuleResultJson {
-    rule_name: string;
-    status: string;
-    enforcement_mode: string;
-    iac_remediation_steps: string;
-    issue_items: IssueItem[];
-}
+import { parseJson } from '../tools/parse_utils';
+import { RuleResult } from '../cloudrail_run_result_model';
 
 
 let scanInProgress = false;
@@ -84,9 +55,7 @@ export async function scan(diagnostics: vscode.DiagnosticCollection) {
             return;
         }
 
-        const fileContent = await util.promisify(fs.readFile)(runResults.resultsFilePath, {encoding: 'utf-8'});
-        const dataObject: RuleResultJson[] = JSON.parse(fileContent);
-        
+        const dataObject = await parseJson<RuleResult[]>(runResults.resultsFilePath);
         const failedRules = dataObject.filter(ruleResult => ruleResult.status === 'failed');
 
         for (let failedRule of failedRules) {
