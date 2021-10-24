@@ -6,14 +6,19 @@ import { cloudrailVersion } from './commands/version';
 import { scan } from './commands/scan';
 import { initializeEnvironment } from './commands/init';
 import { updateCloudrail } from './commands/update';
+import { getUnsetMandatoryFields } from './tools/configuration';
 
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
 	console.log('Congratulations, your extension "cloudrail-iac-scanning" is now active!');
+
+	const diagnostics = vscode.languages.createDiagnosticCollection('cloudrail');
+    context.subscriptions.push(diagnostics);
+
 	CloudrailRunner.init(context.globalStorageUri.path);
-	initializeEnvironment(false, false);
+	initializeEnvironment(false);
 
 	const commands = [
 		vscode.commands.registerCommand('cloudrail.version', () => {
@@ -21,7 +26,7 @@ export function activate(context: vscode.ExtensionContext) {
 		}),
 
 		vscode.commands.registerCommand('cloudrail.scan', () => {
-			scan();
+			scan(diagnostics);
 		}),
 
 		vscode.commands.registerCommand('cloudrail.settings', () => {
@@ -29,7 +34,12 @@ export function activate(context: vscode.ExtensionContext) {
 		}),
 
 		vscode.commands.registerCommand('cloudrail.init', () => {
-			initializeEnvironment(true, true);
+			const unsetMandatoryFields = getUnsetMandatoryFields();
+			if (unsetMandatoryFields.length > 0) {
+				vscode.commands.executeCommand('workbench.action.openSettings', 'cloudrail');
+				vscode.window.showErrorMessage(`The following required options are not set: ${unsetMandatoryFields.join(', ')}`);
+			}
+			initializeEnvironment(true);
 		}),
 
 		vscode.commands.registerCommand('cloudrail.update', () => {

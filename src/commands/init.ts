@@ -1,24 +1,18 @@
 import * as vscode from 'vscode';
 import { CloudrailRunner } from "../cloudrail_runner";
-import { handleUnsetMandatoryFields } from '../tools/configuration';
 
-let initializationInProgress = false;
+let initializationInProgress = false; // Boolean that is used to ensure only one initialization processes work
+let lastInitializationSucceeded = false; // Boolean that is used to indicate if last initialization was a success, used when there is an initialization already in progress
 
-export async function initializeEnvironment(showProgress: boolean, initSettings: boolean): Promise<boolean> {
+export async function initializeEnvironment(showProgress: boolean): Promise<boolean> {
     if (initializationInProgress) {
-        vscode.window.showInformationMessage('Initialization already in progress');
-        return false;
+        while (initializationInProgress) {
+            await new Promise((resolve) => setTimeout(resolve, 1000));
+        }
+        return lastInitializationSucceeded;
     }
     
     initializationInProgress = true;
-    let isSettingsValid = true;
-    if (initSettings) {
-        if (!handleUnsetMandatoryFields()) {
-            isSettingsValid = false;
-            console.log(`Missing mandatory settings`);
-        }
-    }
-
     let initialized = false;
 
     await vscode.window.withProgress({
@@ -54,16 +48,18 @@ export async function initializeEnvironment(showProgress: boolean, initSettings:
                 resolve();
                 initialized = true;
             }).catch((e) => {
+                vscode.window.showErrorMessage('Cloudrail initialization failed due to: ' + e);
                 console.log('Initialization cancelled due to:\n' + e);
                 initialized = false;
             });
 
             initializationInProgress = false;
+            lastInitializationSucceeded = initialized;
         });
     });
 
     console.log('Initialization succeeded? ' + initialized);
-    return initialized && isSettingsValid;
+    return initialized;
 }
 
 function reportProgress(progress: vscode.Progress<{ message?: string; increment?: number }>, 
