@@ -9,7 +9,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
         with:
-          ref: main
           token: ${{ secrets.PAT_CLOUDRAIL_VSCODE }}
       - name: Create new version
         run: |
