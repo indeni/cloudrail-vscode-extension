@@ -1,0 +1,33 @@
+name: Release extension
+
+on: [workflow_dispatch]
+
+jobs:
+  Release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          ref: main
+      - name: Create new version
+          run: |
+            git config --local user.email "action@github.com"
+            git config --local user.name "GitHub Action"
+            git fetch --tags
+            latest_version=$(git describe --tags `git rev-list --tags --max-count=1`)
+            echo "latest version: latest_version"
+            new_version=$(npm version patch --message "version: %s")
+            echo "new version: $new_version"
+            git push origin main
+            git push origin $new_version
+      - name: Setup Node
+        uses: actions/setup-node@v1
+        with:
+          node-version: 12
+      - name: build and publish vsix
+        run: |
+          npm ci
+          npm i -g vsce
+          vsce package
+          vsce publish -p ${{ secrets.VSCODE_CLOUDRAIL_EXTENSION_ACCESS_TOKEN }}
