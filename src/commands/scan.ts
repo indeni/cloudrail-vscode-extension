@@ -56,6 +56,7 @@ export async function scan(diagnostics: vscode.DiagnosticCollection) {
         }
 
         await handleRunResults(runResults, diagnostics);
+    }).then( () => {
         scanInProgress = false;
     });
 }
