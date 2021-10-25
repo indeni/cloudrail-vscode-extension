@@ -36,13 +36,3 @@ export function getUnsetMandatoryFields(): string[] {
 
     return unsetMandatoryFields;
 }
-
-export function handleUnsetMandatoryFields(): boolean {
-    const unsetMandatoryFields = getUnsetMandatoryFields();
-        if (unsetMandatoryFields.length > 0) {
-            vscode.commands.executeCommand('workbench.action.openSettings', 'cloudrail');
-            vscode.window.showErrorMessage(`The following required options are not set: ${unsetMandatoryFields.join(', ')}`);
-            return false;
-        }
-    return true;
-}
