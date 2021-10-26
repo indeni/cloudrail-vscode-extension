@@ -4,7 +4,6 @@ import { logger } from '../tools/logger';
 interface CloudrailConfiguration {
     apiKey?: string | undefined;
     terraformWorkingDirectory?: string | undefined;
-    cloudAccountId?: string | undefined;
     cloudrailPolicyId?: string | undefined;
     awsDefaultRegion?: string;
 }
@@ -15,7 +14,6 @@ export function getConfig(): CloudrailConfiguration {
     return {
         apiKey: config.get('ApiKey'),
         terraformWorkingDirectory: config.get('TerraformWorkingDirectory'),
-        cloudAccountId: config.get('CloudAccountId'),
         cloudrailPolicyId: config.get('CloudrailPolicyId'),
         awsDefaultRegion: config.get('AwsDefaultRegion')
     };

@@ -74,7 +74,6 @@ export class CloudrailRunner {
 
     static async cloudrailRun(workingDir: string, 
                               apiKey: string,
-                              cloudAccountId: string | undefined,
                               cloudrailPolicyId: string | undefined,
                               awsDefaultRegion: string | undefined,
                               onStdoutCallback: (data: string) => void): Promise<CloudrailRunResponse> {
@@ -93,13 +92,9 @@ export class CloudrailRunner {
             '--upload-log',
             `--output-file ${resultsFilePath}`,
             `--directory ${workingDir}`,
-            `--api-key ${apiKey}`
+            `--api-key ${apiKey}`,
+            `--no-cloud-account`
         ];
-        if (cloudAccountId) {
-            runArgs.push(`--cloud-account-id ${cloudAccountId}`);
-        } else {
-            runArgs.push(`--no-cloud-account`);
-        }
 
         if (cloudrailPolicyId) {
             runArgs.push(`--policy-id ${cloudrailPolicyId}`);
