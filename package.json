@@ -52,7 +52,7 @@
 		],
 		"configuration": {
 			"type": "object",
-			"title": "Cloudrail Configuration",
+			"title": "Cloudrail",
 			"properties": {
 				"cloudrail.ApiKey": {
 					"type": "string",
@@ -61,10 +61,6 @@
 				"cloudrail.TerraformWorkingDirectory": {
 					"type": "string",
 					"description": "[MANDATORY] The root directory of your terraform project"
-				},
-				"cloudrail.CloudAccountId": {
-					"type": "string",
-					"description": "[OPTIONAL] Your cloud account id"
 				},
 				"cloudrail.CloudrailPolicyId": {
 					"type": "string",

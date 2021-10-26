@@ -42,7 +42,7 @@ export async function scan(diagnostics: vscode.DiagnosticCollection) {
         return new Promise<void>(async resolve => {
             progress.report({ increment: 0, message: 'Starting cloudrail run'});
 
-            runResults = await CloudrailRunner.cloudrailRun(config.terraformWorkingDirectory!, config.apiKey!, config.cloudAccountId, config.cloudrailPolicyId, config.awsDefaultRegion,
+            runResults = await CloudrailRunner.cloudrailRun(config.terraformWorkingDirectory!, config.apiKey!, config.cloudrailPolicyId, config.awsDefaultRegion,
                 (data: string) => {
                     stdout += data;
                     progress.report({ increment: 10, message: data});
