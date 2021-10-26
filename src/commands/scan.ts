@@ -5,12 +5,14 @@ import { initializeEnvironment } from './init';
 import * as path from 'path';
 import { parseJson } from '../tools/parse_utils';
 import { RuleResult } from '../cloudrail_run_result_model';
+import { logger } from '../tools/logger';
 
 
 let scanInProgress = false;
 
 export async function scan(diagnostics: vscode.DiagnosticCollection) {
     if (scanInProgress) {
+        logger.debug('Scan in progress - exiting');
         vscode.window.showInformationMessage('Cannot run Cloudrail Scan while another scan is in progress.');
         return;
     }
@@ -38,7 +40,6 @@ export async function scan(diagnostics: vscode.DiagnosticCollection) {
     }, async (progress) => {
 
         return new Promise<void>(async resolve => {
-            console.log('starting cloudrail run');
             progress.report({ increment: 0, message: 'Starting cloudrail run'});
 
             runResults = await CloudrailRunner.cloudrailRun(config.terraformWorkingDirectory!, config.apiKey!, config.cloudAccountId, config.cloudrailPolicyId, config.awsDefaultRegion,

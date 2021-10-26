@@ -5,6 +5,7 @@ import * as util from 'util';
 import { Versioning } from './tools/versioning';
 import * as shell from 'shelljs';
 import * as os from 'os';
+import { logger } from './tools/logger';
 
 
 export interface CloudrailRunResponse {
@@ -25,15 +26,15 @@ export class CloudrailRunner {
     }
 
     static async createVenv(): Promise<void> {
-        console.log('Checking if venv exists');
+        logger.info('Checking if venv exists');
         if (await this.venvExists() && await this.isPipInstalledInVenv()) {
-            console.log('Venv exists');
+            logger.info('Venv exists');
         } else {
-            console.log('Venv does not exist, creating..');
+            logger.info('Venv does not exist, creating..');
             await util.promisify(fs.mkdir)(this.venvPath, { recursive: true });
-            console.log('Creating venv dir');
+            logger.info('Creating venv dir');
             await this.asyncExec(`python3 -m venv "${this.venvPath}"`);
-            console.log('Created venv');
+            logger.info('Created venv');
         }
     }
 
@@ -41,21 +42,21 @@ export class CloudrailRunner {
         try {
             let versionOutput = await this.runCloudrail(`--version`);
             if (versionOutput.stderr) { 
-                console.log(`Unexpected error when checking cloudrail version: ${versionOutput.stderr}`);
+                logger.error(`Unexpected error when checking cloudrail version: ${versionOutput.stderr}`);
                 return Promise.reject(versionOutput.stderr);
             };
 
             return versionOutput.stdout;
         } catch(e) {
-            console.log('Cloudrail is not installed');
+            logger.info('Cloudrail is not installed');
             return;
         }
     }
 
     static async installCloudrail(): Promise<void> {
-        console.log('Installing cloudrail pip package');
+        logger.info('Installing cloudrail pip package');
         await this.runVenvPip('install cloudrail --no-input');
-        console.log('Finished installing cloudrail pip package');
+        logger.info('Finished installing cloudrail pip package');
     }
 
     static async setCloudrailVersion(): Promise<void> {
@@ -66,9 +67,9 @@ export class CloudrailRunner {
     }
 
     static async updateCloudrail(): Promise<void> {
-        console.log('Updating cloudrail');
+        logger.info('Updating cloudrail');
         await this.runVenvPip('install cloudrail --upgrade --no-input');
-        console.log('Cloudrail updated');
+        logger.info('Cloudrail updated');
     }
 
     static async cloudrailRun(workingDir: string, 
@@ -109,12 +110,12 @@ export class CloudrailRunner {
         }
 
         let running = true;
-        const run = shell.exec(`
-            ${CloudrailRunner.sourceCmd} && 
-            cloudrail run ${runArgs.join(' ')}`, { async: true });
+        const runCommand = `${CloudrailRunner.sourceCmd} && cloudrail run ${runArgs.join(' ')}`;
+        this.logRunCommand(runCommand);
+        const run = shell.exec(runCommand, { async: true });
 
         run.stdout?.on('data', (data: string) => {
-            console.log(`cloudrail run: ${data}`);
+            logger.info(`Cloudrail run stdout: ${data}`);
             stdout += data;
             let match = data.match(/https:\/\/(web\.[a-z-.]*cloudrail\.app\/environments\/assessments\/[0-9A-Fa-f]{8}(?:-[0-9A-Fa-f]{4}){3}-[0-9A-Fa-f]{12})/g);
             if (match) {
@@ -124,32 +125,38 @@ export class CloudrailRunner {
         });
 
         run.stderr?.on('data', (data: string) => {
-            console.log(`cloudrail run err: ${data}`);
+            logger.info(`Cloudrail run stderr: ${data}`);
         });
 
         run.on('close', (exitCode) => {
             success = exitCode === 0;
             running = false;
-            console.log('cloudrail run finished');
+            logger.info(`cloudrail run finished with exit code ${exitCode}`);
         });
 
         while (running) {
             await new Promise((resolve) => setTimeout(resolve, 2000));
         }
 
-        console.log('resultsFile: ' + resultsFilePath);
+        if (success) {
+            logger.info('resultsFile: ' + resultsFilePath);('Cloudrail run results saved to: ' + resultsFilePath);
+        }
+        
         return {resultsFilePath: resultsFilePath, success: success, stdout: stdout, assessmentLink: assessmentLink}; 
     }
 
     private static asyncExec(command: string): Promise<{stdout: string, stderr: string}> {
+        logger.info(`asyncExec command: ${command}`);
         return util.promisify(exec)(command);
     }
 
     static async isPythonInstalled(): Promise<boolean> {
         try {
             const version = (await this.asyncExec('python3 --version')).stdout.split(' ')[1];
+            logger.debug(`Response from running "python3 --version": ${version}`);
             return version.startsWith('3.8') || version.startsWith('3.9');
         } catch {
+            logger.info('Python is not installed');
             return false;
         }
     }
@@ -178,5 +185,18 @@ export class CloudrailRunner {
 
     private static async runCloudrail(command: string): Promise<{stdout: string, stderr: string}> {
         return await this.asyncExec(`${this.sourceCmd} && cloudrail ${command}`);
+    }
+
+    private static logRunCommand(command: string): void {
+        const logPrefix = 'Cloudrail Run command:';
+        const splitted = command.split(' ');
+        const index2 = splitted.indexOf('--api-key');
+
+        if (index2 === -1) {
+            logger.info(`${logPrefix} ${command}`);
+        } else {
+            splitted[index2+1] = '****';
+            logger.info(`${logPrefix} ${splitted.join(' ')}`);
+        }
     }
 }
