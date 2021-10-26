@@ -29,24 +29,22 @@ export async function scan(diagnostics: vscode.DiagnosticCollection) {
     let stdout = '';
     const config = getConfig();
     scanInProgress = true;
+    const onScanEnd = (reject: any) => { scanInProgress = false; };
 
     vscode.window.withProgress({
         location: vscode.ProgressLocation.Notification,
         cancellable: false
     }, async (progress) => {
-        return new Promise<void>(async resolve => {
-            progress.report({ increment: 0, message: 'Starting Cloudrail run'});
-            if (!await initializeEnvironment(false)) {
-                return;
-            }
+        progress.report({ increment: 0, message: 'Starting Cloudrail run'});
 
-            runResults = await CloudrailRunner.cloudrailRun(config.terraformWorkingDirectory!, config.apiKey!, config.cloudrailPolicyId, config.awsDefaultRegion,
-                (data: string) => {
-                    stdout += data;
-                    progress.report({ increment: 10, message: data});
-            });
-            
-            resolve();
+        if (!await initializeEnvironment(false)) {
+            return;
+        }
+
+        runResults = await CloudrailRunner.cloudrailRun(config.terraformWorkingDirectory!, config.apiKey!, config.cloudrailPolicyId, config.awsDefaultRegion,
+            (data: string) => {
+                stdout += data;
+                progress.report({ increment: 10, message: data});
         });
     }).then( async () => {
         if (runResults === undefined) {
@@ -58,9 +56,8 @@ export async function scan(diagnostics: vscode.DiagnosticCollection) {
         }
 
         await handleRunResults(runResults, diagnostics);
-    }).then( () => {
-        scanInProgress = false;
-    });
+    }, onScanEnd
+    ).then( onScanEnd, onScanEnd );
 }
 
 async function handleRunResults(runResults: CloudrailRunResponse, diagnostics: vscode.DiagnosticCollection): Promise<void> {
