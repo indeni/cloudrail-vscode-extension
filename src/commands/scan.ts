@@ -24,10 +24,6 @@ export async function scan(diagnostics: vscode.DiagnosticCollection) {
         return;
     }
 
-    if (!await initializeEnvironment(true)) {
-        return;
-    }
-
     diagnostics.clear();
     let runResults: CloudrailRunResponse;
     let stdout = '';
@@ -38,9 +34,11 @@ export async function scan(diagnostics: vscode.DiagnosticCollection) {
         location: vscode.ProgressLocation.Notification,
         cancellable: false
     }, async (progress) => {
-
         return new Promise<void>(async resolve => {
-            progress.report({ increment: 0, message: 'Starting cloudrail run'});
+            progress.report({ increment: 0, message: 'Starting Cloudrail run'});
+            if (!await initializeEnvironment(false)) {
+                return;
+            }
 
             runResults = await CloudrailRunner.cloudrailRun(config.terraformWorkingDirectory!, config.apiKey!, config.cloudrailPolicyId, config.awsDefaultRegion,
                 (data: string) => {
@@ -51,6 +49,9 @@ export async function scan(diagnostics: vscode.DiagnosticCollection) {
             resolve();
         });
     }).then( async () => {
+        if (runResults === undefined) {
+            vscode.window.showErrorMessage('Cloudrail failed to start');
+        }
         if (!runResults.success) {
             vscode.window.showErrorMessage('Cloudrail Run failed:\n' + runResults.stdout);
             return;
@@ -66,6 +67,7 @@ async function handleRunResults(runResults: CloudrailRunResponse, diagnostics: v
     const config = getConfig();
     const dataObject = await parseJson<RuleResult[]>(runResults.resultsFilePath);
     const failedRules = dataObject.filter(ruleResult => ruleResult.status === 'failed');
+    
 
     for (let failedRule of failedRules) {
         for (let issueItem of failedRule.issue_items) {
