@@ -106,6 +106,7 @@
 		"webpack-cli": "^4.8.0"
 	},
 	"dependencies": {
-		"shelljs": "^0.8.4"
+		"shelljs": "^0.8.4",
+		"winston": "^3.3.3"
 	}
 }

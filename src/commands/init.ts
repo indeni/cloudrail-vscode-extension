@@ -1,11 +1,13 @@
 import * as vscode from 'vscode';
 import { CloudrailRunner } from "../cloudrail_runner";
+import { logger } from '../tools/logger';
 
 let initializationInProgress = false; // Boolean that is used to ensure only one initialization processes work
 let lastInitializationSucceeded = false; // Boolean that is used to indicate if last initialization was a success, used when there is an initialization already in progress
 
 export async function initializeEnvironment(showProgress: boolean): Promise<boolean> {
     if (initializationInProgress) {
+        logger.debug('Initialization in progress - will wait for current initialization to complete');
         while (initializationInProgress) {
             await new Promise((resolve) => setTimeout(resolve, 1000));
         }
@@ -49,7 +51,7 @@ export async function initializeEnvironment(showProgress: boolean): Promise<bool
                 initialized = true;
             }).catch((e) => {
                 vscode.window.showErrorMessage('Cloudrail initialization failed due to: ' + e);
-                console.log('Initialization cancelled due to:\n' + e);
+                logger.info('Initialization cancelled due to:\n' + e);
                 initialized = false;
             });
 
@@ -58,7 +60,7 @@ export async function initializeEnvironment(showProgress: boolean): Promise<bool
         });
     });
 
-    console.log('Initialization succeeded? ' + initialized);
+    logger.info('Initialization succeeded? ' + initialized);
     return initialized;
 }
 

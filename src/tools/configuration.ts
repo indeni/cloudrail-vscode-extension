@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-
+import { logger } from '../tools/logger';
 
 interface CloudrailConfiguration {
     apiKey?: string | undefined;
@@ -34,5 +34,6 @@ export function getUnsetMandatoryFields(): string[] {
         unsetMandatoryFields.push('TerraformWorkingDirectory');
     }
 
+    logger.debug(`Unset mandatory fields: ${unsetMandatoryFields.join(', ')}`);
     return unsetMandatoryFields;
 }
