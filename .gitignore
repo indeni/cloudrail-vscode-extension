@@ -4,3 +4,4 @@ node_modules/.bin/js-yaml
 .vscode-test
 out
 *.vsix
+.idea

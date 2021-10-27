@@ -118,9 +118,15 @@ async function getVcsInfo(baseDir: string): Promise<VcsInfo | undefined> {
             const commit = (await git.show()).replace('\n', ' ').split(' ')[1];
 
             let buildLink;
-            if (repo.startsWith('git@bitbucket')) {
-                buildLink = repo.replace(':', '/').replace('git@bitbucket.org', 'https://bitbucket.org').slice(0, -4); // Remove .git suffix
-                buildLink += '/src/';
+            if (repo.startsWith('git@')) {
+                repo = repo
+                        .replace(':', '/')
+                        .replace('git@', '')
+                        .slice(0, -4); // Remove .git suffix
+            }
+
+            if (repo.startsWith('bitbucket')) {
+                buildLink = 'https://' + repo + '/src/';
                 if (branch.includes('/')) { // For branches like bugfix/branchname or feature/branchname
                     buildLink += `${commit}/?at=${branch}`;
                 } else {
@@ -128,9 +134,8 @@ async function getVcsInfo(baseDir: string): Promise<VcsInfo | undefined> {
                 }
                 
 
-            } else if (repo.startsWith('https://github.com')) {
-                buildLink = repo.slice(0, -4); // Remove .git suffix
-                buildLink += '/tree/' + branch;
+            } else if (repo.startsWith('github')) { 
+                buildLink = 'https://' + repo + '/tree/' + branch;
                 repo = repo.slice(8); // remove https:// prefix
             } else {
                 throw new Error('Unsupported vcs for repo: ' + repo);
