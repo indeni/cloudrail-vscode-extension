@@ -103,6 +103,7 @@
 	},
 	"dependencies": {
 		"shelljs": "^0.8.4",
+		"simple-git": "^2.47.0",
 		"winston": "^3.3.3"
 	}
 }

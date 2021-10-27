@@ -16,6 +16,13 @@ export interface CloudrailRunResponse {
 }
 
 
+export interface VcsInfo {
+    repo: string;
+    branch: string;
+    commit: string;
+    buildLink: string;
+}
+
 export class CloudrailRunner {
     private static venvPath: string;
     private static sourceCmd: string;
@@ -76,6 +83,7 @@ export class CloudrailRunner {
                               apiKey: string,
                               cloudrailPolicyId: string | undefined,
                               awsDefaultRegion: string | undefined,
+                              vcsInfo: VcsInfo | undefined,
                               onStdoutCallback: (data: string) => void): Promise<CloudrailRunResponse> {
 
         let stdout = '';
@@ -93,7 +101,8 @@ export class CloudrailRunner {
             `--output-file ${resultsFilePath}`,
             `--directory ${workingDir}`,
             `--api-key ${apiKey}`,
-            `--no-cloud-account`
+            `--no-cloud-account`,
+            '--execution-source-identifier VSCode'
         ];
 
         if (cloudrailPolicyId) {
@@ -102,6 +111,11 @@ export class CloudrailRunner {
 
         if (awsDefaultRegion) {
             runArgs.push(`--aws-default-region ${awsDefaultRegion}`);
+        }
+
+        if (vcsInfo) {
+            runArgs.push(`--vcs-id ${vcsInfo.repo}/${vcsInfo.branch}/${vcsInfo.commit.substring(0, 7)}`);
+            runArgs.push(`--build-link ${vcsInfo.buildLink}`);
         }
 
         let running = true;

@@ -1,14 +1,16 @@
 import * as vscode from 'vscode';
-import { CloudrailRunner, CloudrailRunResponse } from '../cloudrail_runner';
+import { CloudrailRunner, CloudrailRunResponse, VcsInfo } from '../cloudrail_runner';
 import { getUnsetMandatoryFields, getConfig } from '../tools/configuration';
 import { initializeEnvironment } from './init';
 import * as path from 'path';
 import { parseJson } from '../tools/parse_utils';
 import { RuleResult } from '../cloudrail_run_result_model';
 import { logger } from '../tools/logger';
+import simpleGit, {SimpleGit, SimpleGitOptions} from 'simple-git';
 
 
 let scanInProgress = false;
+
 
 export async function scan(diagnostics: vscode.DiagnosticCollection) {
     if (scanInProgress) {
@@ -41,7 +43,9 @@ export async function scan(diagnostics: vscode.DiagnosticCollection) {
             return;
         }
 
-        runResults = await CloudrailRunner.cloudrailRun(config.terraformWorkingDirectory!, config.apiKey!, config.cloudrailPolicyId, config.awsDefaultRegion,
+        
+        const vcsInfo = await getVcsInfo(config.terraformWorkingDirectory!);
+        runResults = await CloudrailRunner.cloudrailRun(config.terraformWorkingDirectory!, config.apiKey!, config.cloudrailPolicyId, config.awsDefaultRegion, vcsInfo,
             (data: string) => {
                 stdout += data;
                 progress.report({ increment: 10, message: data});
@@ -97,4 +101,46 @@ async function handleRunResults(runResults: CloudrailRunResponse, diagnostics: v
             diagnostics.set(document.uri ,foundDiagnostics);
         }
     }
+}
+
+async function getVcsInfo(baseDir: string): Promise<VcsInfo | undefined> {
+    let vcsInfo: VcsInfo | undefined = undefined;
+    const options: Partial<SimpleGitOptions> = {
+		baseDir: baseDir,
+		binary: 'git',
+	 };
+	 
+     try {
+        const git: SimpleGit = simpleGit(options);
+        if (await git.checkIsRepo()) {
+            let repo = (await git.remote(['get-url', 'origin']) as string).replace('\n', '');
+            const branch = (await git.branch()).current;
+            const commit = (await git.show()).replace('\n', ' ').split(' ')[1];
+
+            let buildLink;
+            if (repo.startsWith('git@bitbucket')) {
+                buildLink = repo.replace(':', '/').replace('git@bitbucket.org', 'https://bitbucket.org').slice(0, -4); // Remove .git suffix
+                buildLink += '/src/';
+                if (branch.includes('/')) { // For branches like bugfix/branchname or feature/branchname
+                    buildLink += `${commit}/?at=${branch}`;
+                } else {
+                    buildLink += branch;
+                }
+                
+
+            } else if (repo.startsWith('https://github.com')) {
+                buildLink = repo.slice(0, -4); // Remove .git suffix
+                buildLink += '/tree/' + branch;
+                repo = repo.slice(8); // remove https:// prefix
+            } else {
+                throw new Error('Unsupported vcs for repo: ' + repo);
+            }
+
+            vcsInfo = { repo: repo, branch: branch, commit: commit, buildLink: buildLink };
+        }
+     } catch(e) {
+        logger.error('An error occured when trying to get vcs info: ' + e);
+     }
+
+     return vcsInfo;
 }
