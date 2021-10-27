@@ -136,7 +136,6 @@ async function getVcsInfo(baseDir: string): Promise<VcsInfo | undefined> {
 
             } else if (repo.startsWith('github')) { 
                 buildLink = 'https://' + repo + '/tree/' + branch;
-                repo = repo.slice(8); // remove https:// prefix
             } else {
                 throw new Error('Unsupported vcs for repo: ' + repo);
             }
