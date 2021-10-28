@@ -164,7 +164,7 @@ async function getTerraformWorkingDirectory(): Promise<string | undefined> {
         const editorPath = activeEditor.document.uri.fsPath;
         const editorDirectoryPath = path.dirname(editorPath);
         if (!vscode.workspace.getWorkspaceFolder(activeEditor.document.uri)) {
-            if (await vscode.window.showInformationMessage('Are you sure you want to run Cloudrail on a folder outside your workspace?', 'Yes', 'No') !== 'Yes') {
+            if (await vscode.window.showInformationMessage('Are you sure you want to run Cloudrail on a folder outside your workspace?', 'Scan', 'Cancel') !== 'Scan') {
                 return;
             }
         }
