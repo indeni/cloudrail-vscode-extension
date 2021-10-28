@@ -31,7 +31,7 @@ export async function scan(diagnostics: vscode.DiagnosticCollection) {
     let stdout = '';
     const config = getConfig();
     scanInProgress = true;
-    const onScanEnd = (reject: any) => { scanInProgress = false; };
+    const onScanEnd = () => { scanInProgress = false; };
 
     vscode.window.withProgress({
         location: vscode.ProgressLocation.Notification,
@@ -42,7 +42,6 @@ export async function scan(diagnostics: vscode.DiagnosticCollection) {
         if (!await initializeEnvironment(false)) {
             return;
         }
-
         
         const vcsInfo = await getVcsInfo(config.terraformWorkingDirectory!);
         runResults = await CloudrailRunner.cloudrailRun(config.terraformWorkingDirectory!, config.apiKey!, config.cloudrailPolicyId, config.awsDefaultRegion, vcsInfo,
@@ -61,7 +60,13 @@ export async function scan(diagnostics: vscode.DiagnosticCollection) {
 
         await handleRunResults(runResults, diagnostics);
     }, onScanEnd
-    ).then( onScanEnd, onScanEnd );
+    ).then( 
+        onScanEnd, 
+        (reject: any) => {
+            onScanEnd();
+            logger.error(reject);
+        } 
+    );
 }
 
 async function handleRunResults(runResults: CloudrailRunResponse, diagnostics: vscode.DiagnosticCollection): Promise<void> {
