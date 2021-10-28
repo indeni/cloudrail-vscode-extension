@@ -113,16 +113,18 @@ async function getVcsInfo(baseDir: string): Promise<VcsInfo | undefined> {
      try {
         const git: SimpleGit = simpleGit(options);
         if (await git.checkIsRepo()) {
-            let repo = (await git.remote(['get-url', 'origin']) as string).replace('\n', '');
             const branch = (await git.branch()).current;
             const commit = (await git.show()).replace('\n', ' ').split(' ')[1];
-
+            let repo = (await git.remote(['get-url', 'origin']) as string).replace('\n', '');
+            repo = repo.replace('https://', '').replace('http://', '');
+            repo = repo.slice(0, -4); // Remove .git suffix
+            
             let buildLink;
-            if (repo.startsWith('git@')) {
+
+            if (repo.includes('@')) {
                 repo = repo
                         .replace(':', '/')
-                        .replace('git@', '')
-                        .slice(0, -4); // Remove .git suffix
+                        .slice(repo.indexOf('@') + 1); // Remove everything up to (and includes) '@'
             }
 
             if (repo.startsWith('bitbucket')) {
@@ -132,8 +134,6 @@ async function getVcsInfo(baseDir: string): Promise<VcsInfo | undefined> {
                 } else {
                     buildLink += branch;
                 }
-                
-
             } else if (repo.startsWith('github')) { 
                 buildLink = 'https://' + repo + '/tree/' + branch;
             } else {
