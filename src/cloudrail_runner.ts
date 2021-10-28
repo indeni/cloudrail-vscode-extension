@@ -154,6 +154,14 @@ export class CloudrailRunner {
         return {resultsFilePath: resultsFilePath, success: success, stdout: stdout, assessmentLink: assessmentLink}; 
     }
 
+    static async getApiKey(): Promise<string> {
+        try {
+            return (await this.runCloudrail('config info | grep api_key | awk \'{print $2}\'')).stdout.replace('\n', '');
+        } catch {
+            return '';
+        }
+    }
+
     private static asyncExec(command: string): Promise<{stdout: string, stderr: string}> {
         logger.info(`asyncExec command: ${command}`);
         return util.promisify(exec)(command);
@@ -204,7 +212,7 @@ export class CloudrailRunner {
         if (index2 === -1) {
             logger.info(`${logPrefix} ${command}`);
         } else {
-            splitted[index2+1] = '****';
+            splitted[index2+1] = splitted[index2+1].slice(0, 4) + '*******';
             logger.info(`${logPrefix} ${splitted.join(' ')}`);
         }
     }

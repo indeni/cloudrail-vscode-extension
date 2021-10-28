@@ -1,10 +1,7 @@
-import { homedir } from 'os';
-import path from 'path';
 import * as vscode from 'vscode';
 import { logger } from '../tools/logger';
 import { resolveHomeDir } from './path_utils';
-import * as yaml from 'js-yaml';
-import { existsSync, readFileSync } from 'fs';
+import { CloudrailRunner } from '../cloudrail_runner';
 
 
 interface CloudrailConfiguration {
@@ -14,11 +11,11 @@ interface CloudrailConfiguration {
     awsDefaultRegion: string;
 }
 
-export function getConfig(): CloudrailConfiguration {
+export async function getConfig(): Promise<CloudrailConfiguration> {
     const config = vscode.workspace.getConfiguration('cloudrail');
 
     return {
-        apiKey: getApiKey(config),
+        apiKey: await getApiKey(config),
         terraformWorkingDirectory: resolveHomeDir(config.get('TerraformWorkingDirectory'))!,
         cloudrailPolicyId: config.get('CloudrailPolicyId')!,
         awsDefaultRegion: config.get('AwsDefaultRegion')!
@@ -26,9 +23,9 @@ export function getConfig(): CloudrailConfiguration {
 }
 
 
-export function getUnsetMandatoryFields(): string[] {
+export async function getUnsetMandatoryFields(): Promise<string[]> {
     let unsetMandatoryFields = [];
-    const config = getConfig();
+    const config = await getConfig();
 
     if (!config.apiKey) {
         unsetMandatoryFields.push('ApiKey');
@@ -42,19 +39,10 @@ export function getUnsetMandatoryFields(): string[] {
     return unsetMandatoryFields;
 }
 
-function getApiKey(config: vscode.WorkspaceConfiguration): string {
+async function getApiKey(config: vscode.WorkspaceConfiguration): Promise<string> {
     let apiKey: string = config.get('ApiKey')!;
     if (!apiKey) {
-        const cloudrailConfigPath = path.join(homedir(), '.cloudrail', 'config');
-        if (existsSync(cloudrailConfigPath)) {
-            try {
-                // eslint-disable-next-line @typescript-eslint/naming-convention
-                const cloudrailConfig = yaml.load(readFileSync(cloudrailConfigPath, 'utf-8')) as {api_key: string};
-                apiKey = cloudrailConfig.api_key;
-            } catch(e) {
-                logger.error(`Error when trying to read cloudrail config: ${e}`);
-            }
-        }
+        apiKey = await CloudrailRunner.getApiKey();
     }
 
     return apiKey;

@@ -33,8 +33,8 @@ export function activate(context: vscode.ExtensionContext) {
 			vscode.commands.executeCommand('workbench.action.openSettings', 'cloudrail');
 		}),
 
-		vscode.commands.registerCommand('cloudrail.init', () => {
-			const unsetMandatoryFields = getUnsetMandatoryFields();
+		vscode.commands.registerCommand('cloudrail.init', async () => {
+			const unsetMandatoryFields = await getUnsetMandatoryFields();
 			if (unsetMandatoryFields.length > 0) {
 				vscode.commands.executeCommand('workbench.action.openSettings', 'cloudrail');
 				vscode.window.showErrorMessage(`The following required options are not set: ${unsetMandatoryFields.join(', ')}`);
