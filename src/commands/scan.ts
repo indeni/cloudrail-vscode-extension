@@ -164,7 +164,7 @@ async function getTerraformWorkingDirectory(): Promise<string | undefined> {
         const editorPath = activeEditor.document.uri.fsPath;
         const editorDirectoryPath = path.dirname(editorPath);
         if (!vscode.workspace.getWorkspaceFolder(activeEditor.document.uri)) {
-            if (await vscode.window.showInformationMessage('Are you sure you want to run Cloudrail on a folder outside your workspace?', 'Scan', 'Cancel') !== 'Scan') {
+            if (await vscode.window.showInformationMessage('This file is outside of your workspace. Continue with a Cloudrail scan?', 'Scan', 'Cancel') !== 'Scan') {
                 return;
             }
         }
@@ -181,7 +181,7 @@ async function getTerraformWorkingDirectory(): Promise<string | undefined> {
 
         return editorDirectoryPath;
     } else {
-        vscode.window.showErrorMessage(`Please open any file in the directory you wish to run Cloudrail against, and then run Cloudrail Scan command`);
+        vscode.window.showErrorMessage(`Open any file in the terraform module to be scanned, then run Cloudrail Scan`);
         return;
     }
 }
