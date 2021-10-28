@@ -56,7 +56,7 @@
 			"properties": {
 				"cloudrail.ApiKey": {
 					"type": "string",
-					"description": "[MANDATORY] The API Key used to authenticate to cloudrail"
+					"description": "[OPTIONAL] The API Key used to authenticate to cloudrail. If not specified, will use the api key set in cloudrail config"
 				},
 				"cloudrail.TerraformWorkingDirectory": {
 					"type": "string",

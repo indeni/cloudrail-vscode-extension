@@ -19,17 +19,10 @@ export async function scan(diagnostics: vscode.DiagnosticCollection) {
         return;
     }
 
-    const unsetMandatoryFields = getUnsetMandatoryFields();
-    if (unsetMandatoryFields.length > 0) {
-        vscode.commands.executeCommand('workbench.action.openSettings', 'cloudrail');
-        vscode.window.showErrorMessage(`The following required options are not set: ${unsetMandatoryFields.join(', ')}. Cloudrail cannot run without this information.`);
-        return;
-    }
-
     diagnostics.clear();
     let runResults: CloudrailRunResponse;
     let stdout = '';
-    const config = getConfig();
+    const config = await getConfig();
     scanInProgress = true;
     const onScanEnd = () => { scanInProgress = false; };
 
@@ -42,9 +35,16 @@ export async function scan(diagnostics: vscode.DiagnosticCollection) {
         if (!await initializeEnvironment(false)) {
             return;
         }
+
+        const unsetMandatoryFields = await getUnsetMandatoryFields();
+        if (unsetMandatoryFields.length > 0) {
+            vscode.commands.executeCommand('workbench.action.openSettings', 'cloudrail');
+            vscode.window.showErrorMessage(`The following required options are not set: ${unsetMandatoryFields.join(', ')}. Cloudrail cannot run without this information.`);
+            return;
+        }
         
         const vcsInfo = await getVcsInfo(config.terraformWorkingDirectory!);
-        runResults = await CloudrailRunner.cloudrailRun(config.terraformWorkingDirectory!, config.apiKey!, config.cloudrailPolicyId, config.awsDefaultRegion, vcsInfo,
+        runResults = await CloudrailRunner.cloudrailRun(config.terraformWorkingDirectory, config.apiKey, config.cloudrailPolicyId, config.awsDefaultRegion, vcsInfo,
             (data: string) => {
                 stdout += data;
                 progress.report({ increment: 10, message: data});
@@ -70,7 +70,7 @@ export async function scan(diagnostics: vscode.DiagnosticCollection) {
 }
 
 async function handleRunResults(runResults: CloudrailRunResponse, diagnostics: vscode.DiagnosticCollection): Promise<void> {
-    const config = getConfig();
+    const config = await getConfig();
     const dataObject = await parseJson<RuleResult[]>(runResults.resultsFilePath);
     const failedRules = dataObject.filter(ruleResult => ruleResult.status === 'failed');
     
