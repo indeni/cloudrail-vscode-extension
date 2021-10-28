@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import { CloudrailRunner, CloudrailRunResponse, VcsInfo } from '../cloudrail_runner';
-import { getUnsetMandatoryFields, getConfig } from '../tools/configuration';
+import { getUnsetMandatoryFields, getConfig, CloudrailConfiguration } from '../tools/configuration';
 import { initializeEnvironment } from './init';
 import * as path from 'path';
 import { parseJson } from '../tools/parse_utils';
@@ -23,13 +23,17 @@ export async function scan(diagnostics: vscode.DiagnosticCollection) {
     let runResults: CloudrailRunResponse;
     let stdout = '';
     const config = await getConfig();
-    scanInProgress = true;
     const onScanEnd = () => { scanInProgress = false; };
+    const terraformWorkingDirectory = await getTerraformWorkingDirectory(config);
+    if (!terraformWorkingDirectory) {
+        return;
+    }
 
     vscode.window.withProgress({
         location: vscode.ProgressLocation.Notification,
         cancellable: false
     }, async (progress) => {
+        scanInProgress = true;
         progress.report({ increment: 0, message: 'Starting Cloudrail run'});
 
         if (!await initializeEnvironment(false)) {
@@ -43,8 +47,8 @@ export async function scan(diagnostics: vscode.DiagnosticCollection) {
             return;
         }
         
-        const vcsInfo = await getVcsInfo(config.terraformWorkingDirectory!);
-        runResults = await CloudrailRunner.cloudrailRun(config.terraformWorkingDirectory, config.apiKey, config.cloudrailPolicyId, config.awsDefaultRegion, vcsInfo,
+        const vcsInfo = await getVcsInfo(terraformWorkingDirectory);
+        runResults = await CloudrailRunner.cloudrailRun(terraformWorkingDirectory, config.apiKey, config.cloudrailPolicyId, config.awsDefaultRegion, vcsInfo,
             (data: string) => {
                 stdout += data;
                 progress.report({ increment: 10, message: data});
@@ -152,4 +156,32 @@ async function getVcsInfo(baseDir: string): Promise<VcsInfo | undefined> {
      }
 
      return vcsInfo;
+}
+
+async function getTerraformWorkingDirectory(config: CloudrailConfiguration): Promise<string | undefined> {
+    let terraformWorkingDirectory = config.terraformWorkingDirectory;
+    if (!path.isAbsolute(terraformWorkingDirectory)) {
+        const activeEditor = vscode.window.activeTextEditor;
+        let activeWorkspace: vscode.WorkspaceFolder | undefined;
+
+        if (activeEditor) {
+            activeWorkspace = vscode.workspace.getWorkspaceFolder(activeEditor.document.uri!);
+        }
+
+        if (!activeWorkspace) {
+            if (vscode.workspace.workspaceFolders?.length === 1) { // Automatically select the only folder in the workspace
+                activeWorkspace = vscode.workspace.workspaceFolders[0]; 
+            } else {
+                activeWorkspace = await vscode.window.showWorkspaceFolderPick();
+                if (!activeWorkspace) {
+                    logger.debug('User cancelled workspace selection');
+                    return;
+                }
+            }
+        }
+
+        terraformWorkingDirectory = path.join(activeWorkspace.uri.fsPath!, terraformWorkingDirectory);
+    }
+
+    return terraformWorkingDirectory;
 }

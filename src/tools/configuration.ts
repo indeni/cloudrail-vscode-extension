@@ -2,9 +2,10 @@ import * as vscode from 'vscode';
 import { logger } from '../tools/logger';
 import { resolveHomeDir } from './path_utils';
 import { CloudrailRunner } from '../cloudrail_runner';
+import * as path from 'path';
 
 
-interface CloudrailConfiguration {
+export interface CloudrailConfiguration {
     apiKey: string;
     terraformWorkingDirectory: string;
     cloudrailPolicyId: string;
@@ -29,10 +30,6 @@ export async function getUnsetMandatoryFields(): Promise<string[]> {
 
     if (!config.apiKey) {
         unsetMandatoryFields.push('ApiKey');
-    }
-
-    if (!config.terraformWorkingDirectory) {
-        unsetMandatoryFields.push('TerraformWorkingDirectory');
     }
 
     logger.debug(`Unset mandatory fields: ${unsetMandatoryFields.join(', ')}`);

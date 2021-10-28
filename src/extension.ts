@@ -6,7 +6,6 @@ import { cloudrailVersion } from './commands/version';
 import { scan } from './commands/scan';
 import { initializeEnvironment } from './commands/init';
 import { updateCloudrail } from './commands/update';
-import { getUnsetMandatoryFields } from './tools/configuration';
 import { logger } from './tools/logger';
 
 // this method is called when your extension is activated
@@ -34,11 +33,6 @@ export function activate(context: vscode.ExtensionContext) {
 		}),
 
 		vscode.commands.registerCommand('cloudrail.init', async () => {
-			const unsetMandatoryFields = await getUnsetMandatoryFields();
-			if (unsetMandatoryFields.length > 0) {
-				vscode.commands.executeCommand('workbench.action.openSettings', 'cloudrail');
-				vscode.window.showErrorMessage(`The following required options are not set: ${unsetMandatoryFields.join(', ')}`);
-			}
 			initializeEnvironment(true);
 		}),
 
