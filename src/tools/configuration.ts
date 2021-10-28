@@ -7,7 +7,6 @@ import * as path from 'path';
 
 export interface CloudrailConfiguration {
     apiKey: string;
-    terraformWorkingDirectory: string;
     cloudrailPolicyId: string;
     awsDefaultRegion: string;
 }
@@ -17,7 +16,6 @@ export async function getConfig(): Promise<CloudrailConfiguration> {
 
     return {
         apiKey: await getApiKey(config),
-        terraformWorkingDirectory: resolveHomeDir(config.get('TerraformWorkingDirectory'))!,
         cloudrailPolicyId: config.get('CloudrailPolicyId')!,
         awsDefaultRegion: config.get('AwsDefaultRegion')!
     };
