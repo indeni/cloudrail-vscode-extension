@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import { logger } from '../tools/logger';
-
+import { resolveHomeDir } from './path_utils';
 interface CloudrailConfiguration {
     apiKey?: string | undefined;
     terraformWorkingDirectory?: string | undefined;
@@ -13,7 +13,7 @@ export function getConfig(): CloudrailConfiguration {
 
     return {
         apiKey: config.get('ApiKey'),
-        terraformWorkingDirectory: config.get('TerraformWorkingDirectory'),
+        terraformWorkingDirectory: resolveHomeDir(config.get('TerraformWorkingDirectory')),
         cloudrailPolicyId: config.get('CloudrailPolicyId'),
         awsDefaultRegion: config.get('AwsDefaultRegion')
     };
