@@ -7,6 +7,7 @@ import { parseJson } from '../tools/parse_utils';
 import { RuleResult } from '../cloudrail_run_result_model';
 import { logger } from '../tools/logger';
 import simpleGit, {SimpleGit, SimpleGitOptions} from 'simple-git';
+import * as fs from 'fs';
 
 
 let scanInProgress = false;
@@ -181,6 +182,17 @@ async function getTerraformWorkingDirectory(config: CloudrailConfiguration): Pro
         }
 
         terraformWorkingDirectory = path.join(activeWorkspace.uri.fsPath!, terraformWorkingDirectory);
+    }
+
+    terraformWorkingDirectory = path.normalize(terraformWorkingDirectory);
+    let dirContent = fs.readdirSync(terraformWorkingDirectory);
+    let files = dirContent.filter( (value) => {
+        return value.match(/.*.tf$/);
+    });
+
+    if (files.length === 0) {
+        vscode.window.showErrorMessage(`The directory ${terraformWorkingDirectory} does not contain any terraform files. Please set the 'Terraform Working Directory' value in the extension settings.`);
+        return;
     }
 
     return terraformWorkingDirectory;
