@@ -160,6 +160,7 @@ async function getVcsInfo(baseDir: string): Promise<VcsInfo | undefined> {
 
 async function getTerraformWorkingDirectory(): Promise<string | undefined> {
     const activeEditor = vscode.window.activeTextEditor;
+    const instruction = `Open any file in the terraform module to be scanned, then run Cloudrail Scan`;
     if (activeEditor) {
         const editorPath = activeEditor.document.uri.fsPath;
         const editorDirectoryPath = path.dirname(editorPath);
@@ -175,13 +176,13 @@ async function getTerraformWorkingDirectory(): Promise<string | undefined> {
         });
     
         if (files.length === 0) {
-            vscode.window.showErrorMessage(`The current directory '${editorDirectoryPath}'' does not contain any terraform files.`);
+            vscode.window.showErrorMessage(`The current directory '${editorDirectoryPath}'' does not contain any terraform files. ${instruction}`);
             return;
         }
 
         return editorDirectoryPath;
     } else {
-        vscode.window.showErrorMessage(`Open any file in the terraform module to be scanned, then run Cloudrail Scan`);
+        vscode.window.showErrorMessage(instruction);
         return;
     }
 }
