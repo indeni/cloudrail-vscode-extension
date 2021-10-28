@@ -44,7 +44,7 @@ export async function scan(diagnostics: vscode.DiagnosticCollection) {
         }
         
         const vcsInfo = await getVcsInfo(config.terraformWorkingDirectory!);
-        runResults = await CloudrailRunner.cloudrailRun(config.terraformWorkingDirectory!, config.apiKey!, config.cloudrailPolicyId, config.awsDefaultRegion, vcsInfo,
+        runResults = await CloudrailRunner.cloudrailRun(config.terraformWorkingDirectory, config.apiKey, config.cloudrailPolicyId, config.awsDefaultRegion, vcsInfo,
             (data: string) => {
                 stdout += data;
                 progress.report({ increment: 10, message: data});

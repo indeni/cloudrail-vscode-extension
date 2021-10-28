@@ -81,8 +81,8 @@ export class CloudrailRunner {
 
     static async cloudrailRun(workingDir: string, 
                               apiKey: string,
-                              cloudrailPolicyId: string | undefined,
-                              awsDefaultRegion: string | undefined,
+                              cloudrailPolicyId: string,
+                              awsDefaultRegion: string,
                               vcsInfo: VcsInfo | undefined,
                               onStdoutCallback: (data: string) => void): Promise<CloudrailRunResponse> {
 
