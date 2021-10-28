@@ -7,6 +7,7 @@ import { parseJson } from '../tools/parse_utils';
 import { RuleResult } from '../cloudrail_run_result_model';
 import { logger } from '../tools/logger';
 import simpleGit, {SimpleGit, SimpleGitOptions} from 'simple-git';
+import * as fs from 'fs';
 
 
 let scanInProgress = false;
@@ -24,7 +25,7 @@ export async function scan(diagnostics: vscode.DiagnosticCollection) {
     let stdout = '';
     const config = await getConfig();
     const onScanEnd = () => { scanInProgress = false; };
-    const terraformWorkingDirectory = await getTerraformWorkingDirectory(config);
+    const terraformWorkingDirectory = await getTerraformWorkingDirectory();
     if (!terraformWorkingDirectory) {
         return;
     }
@@ -62,7 +63,7 @@ export async function scan(diagnostics: vscode.DiagnosticCollection) {
             return;
         }
 
-        await handleRunResults(runResults, diagnostics);
+        await handleRunResults(runResults, diagnostics, terraformWorkingDirectory);
     }, onScanEnd
     ).then( 
         onScanEnd, 
@@ -73,8 +74,7 @@ export async function scan(diagnostics: vscode.DiagnosticCollection) {
     );
 }
 
-async function handleRunResults(runResults: CloudrailRunResponse, diagnostics: vscode.DiagnosticCollection): Promise<void> {
-    const config = await getConfig();
+async function handleRunResults(runResults: CloudrailRunResponse, diagnostics: vscode.DiagnosticCollection, terraformWorkingDirectory: string): Promise<void> {
     const dataObject = await parseJson<RuleResult[]>(runResults.resultsFilePath);
     const failedRules = dataObject.filter(ruleResult => ruleResult.status === 'failed');
     
@@ -82,7 +82,7 @@ async function handleRunResults(runResults: CloudrailRunResponse, diagnostics: v
     for (let failedRule of failedRules) {
         for (let issueItem of failedRule.issue_items) {
             const iacMetadata = issueItem.violating_entity.iac_resource_metadata;
-            let docPath = path.join(config.terraformWorkingDirectory!, iacMetadata.file_name);
+            let docPath = path.join(terraformWorkingDirectory, iacMetadata.file_name);
             let document = await vscode.workspace.openTextDocument(docPath);
             let foundDiagnostics: vscode.Diagnostic[] = [];
 
@@ -158,30 +158,31 @@ async function getVcsInfo(baseDir: string): Promise<VcsInfo | undefined> {
      return vcsInfo;
 }
 
-async function getTerraformWorkingDirectory(config: CloudrailConfiguration): Promise<string | undefined> {
-    let terraformWorkingDirectory = config.terraformWorkingDirectory;
-    if (!path.isAbsolute(terraformWorkingDirectory)) {
-        const activeEditor = vscode.window.activeTextEditor;
-        let activeWorkspace: vscode.WorkspaceFolder | undefined;
-
-        if (activeEditor) {
-            activeWorkspace = vscode.workspace.getWorkspaceFolder(activeEditor.document.uri!);
-        }
-
-        if (!activeWorkspace) {
-            if (vscode.workspace.workspaceFolders?.length === 1) { // Automatically select the only folder in the workspace
-                activeWorkspace = vscode.workspace.workspaceFolders[0]; 
-            } else {
-                activeWorkspace = await vscode.window.showWorkspaceFolderPick();
-                if (!activeWorkspace) {
-                    logger.debug('User cancelled workspace selection');
-                    return;
-                }
+async function getTerraformWorkingDirectory(): Promise<string | undefined> {
+    const activeEditor = vscode.window.activeTextEditor;
+    const instruction = `Open any file in the terraform module to be scanned, then run Cloudrail Scan`;
+    if (activeEditor) {
+        const editorPath = activeEditor.document.uri.fsPath;
+        const editorDirectoryPath = path.dirname(editorPath);
+        if (!vscode.workspace.getWorkspaceFolder(activeEditor.document.uri)) {
+            if (await vscode.window.showInformationMessage('This file is outside of your workspace. Continue with a Cloudrail scan?', 'Scan', 'Cancel') !== 'Scan') {
+                return;
             }
         }
 
-        terraformWorkingDirectory = path.join(activeWorkspace.uri.fsPath!, terraformWorkingDirectory);
-    }
+        let dirContent = fs.readdirSync(editorDirectoryPath);
+        let files = dirContent.filter( (value) => {
+            return value.match(/.*.tf$/);
+        });
+    
+        if (files.length === 0) {
+            vscode.window.showErrorMessage(`The current directory '${editorDirectoryPath}'' does not contain any terraform files. ${instruction}`);
+            return;
+        }
 
-    return terraformWorkingDirectory;
+        return editorDirectoryPath;
+    } else {
+        vscode.window.showErrorMessage(instruction);
+        return;
+    }
 }
