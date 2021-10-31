@@ -21,6 +21,7 @@ export interface VcsInfo {
     branch: string;
     commit: string;
     buildLink: string;
+    urlTemplate: string;
 }
 
 export class CloudrailRunner {
@@ -116,6 +117,7 @@ export class CloudrailRunner {
         if (vcsInfo) {
             runArgs.push(`--vcs-id ${vcsInfo.repo}/${vcsInfo.branch}/${vcsInfo.commit.substring(0, 7)}`);
             runArgs.push(`--build-link ${vcsInfo.buildLink}`);
+            runArgs.push(`--iac-url-template ${vcsInfo?.urlTemplate}`);
         }
 
         let running = true;
