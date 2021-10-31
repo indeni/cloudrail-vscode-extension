@@ -124,7 +124,9 @@ async function getVcsInfo(baseDir: string): Promise<VcsInfo | undefined> {
         if (await git.checkIsRepo()) {
             const branch = (await git.branch()).current;
             const commit = (await git.show()).replace('\n', ' ').split(' ')[1];
+            const topLevel = await git.revparse(['--show-toplevel']);
             let repo = (await git.remote(['get-url', 'origin']) as string).replace('\n', '');
+            let urlTemplate = baseDir.replace(topLevel + '/', '');
             repo = repo.replace('https://', '').replace('http://', '');
             repo = repo.slice(0, -4); // Remove .git suffix
             
@@ -135,21 +137,23 @@ async function getVcsInfo(baseDir: string): Promise<VcsInfo | undefined> {
                         .replace(':', '/')
                         .slice(repo.indexOf('@') + 1); // Remove everything up to (and includes) '@'
             }
-
+ 
             if (repo.startsWith('bitbucket')) {
                 buildLink = 'https://' + repo + '/src/';
                 if (branch.includes('/')) { // For branches like bugfix/branchname or feature/branchname
-                    buildLink += `${commit}/?at=${branch}`;
+                    buildLink += `${commit}`;
                 } else {
                     buildLink += branch;
                 }
+                urlTemplate = buildLink + `/${urlTemplate}` + '/{iac_file_path}#lines-{iac_file_line_no}';
             } else if (repo.startsWith('github')) { 
                 buildLink = 'https://' + repo + '/tree/' + branch;
+                urlTemplate = buildLink + `/${urlTemplate}` + '/{iac_file_path}#L{iac_file_line_no}';
             } else {
                 throw new Error('Unsupported vcs for repo: ' + repo);
             }
 
-            vcsInfo = { repo: repo, branch: branch, commit: commit, buildLink: buildLink };
+             vcsInfo = { repo: repo, branch: branch, commit: commit, buildLink: buildLink, urlTemplate: urlTemplate };
         }
      } catch(e) {
         logger.error('An error occured when trying to get vcs info: ' + e);
