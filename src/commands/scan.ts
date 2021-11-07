@@ -174,7 +174,7 @@ async function getTerraformWorkingDirectory(): Promise<string | undefined> {
             }
         }
 
-        let dirContent = fs.readdirSync(editorDirectoryPath);;
+        let dirContent = fs.readdirSync(editorDirectoryPath);
         
         let files = dirContent.filter( (value) => {
             return value.match(/.*.tf$/);
@@ -185,7 +185,7 @@ async function getTerraformWorkingDirectory(): Promise<string | undefined> {
             return;
         }
 
-         return editorDirectoryPath;
+        return editorDirectoryPath;
     } else {
         vscode.window.showErrorMessage(instruction);
         return;
