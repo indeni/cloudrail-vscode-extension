@@ -24,7 +24,6 @@ export async function scan(diagnostics: vscode.DiagnosticCollection) {
     let runResults: CloudrailRunResponse | undefined;
     const config = await getConfig();
     const onScanEnd = () => { scanInProgress = false; };
-    const onReject = (reject: any) => {onScanEnd(); logger.error(reject);};
     const terraformWorkingDirectory = await getTerraformWorkingDirectory();
     if (!terraformWorkingDirectory) {
         return;

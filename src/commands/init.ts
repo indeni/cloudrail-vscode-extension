@@ -16,10 +16,6 @@ export async function initializeEnvironment(showProgress: boolean): Promise<bool
     
     initializationInProgress = true;
     let initialized = false;
-    const onInitEnd = () => {
-        initializationInProgress = false; 
-        lastInitializationSucceeded = initialized; 
-    };
 
     await vscode.window.withProgress({
         location: vscode.ProgressLocation.Notification,
@@ -54,8 +50,10 @@ export async function initializeEnvironment(showProgress: boolean): Promise<bool
             logger.info('Initialization cancelled due to:\n' + e);
             initialized = false;
         }
-    }).then(onInitEnd, onInitEnd);
+    });
 
+    initializationInProgress = false; 
+    lastInitializationSucceeded = initialized; 
     logger.info('Initialization succeeded? ' + initialized);
     return initialized;
 }
