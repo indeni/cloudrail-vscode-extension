@@ -5,7 +5,7 @@
 	"displayName": "Cloudrail IaC Scanning",
 	"description": "A compliance automation tool for infrastructure-as-code, uses a context-engine to analyze your IaC for security issues, highlighting only those that are a true risk to your cloud environment",
 	"icon": "images/cloudrail_logo.png",
-	"version": "0.0.14",
+	"version": "0.0.15",
 	"engines": {
 		"vscode": "^1.60.0"
 	},
