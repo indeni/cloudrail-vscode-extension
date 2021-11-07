@@ -7,20 +7,16 @@ export function updateCloudrail(): void {
     vscode.window.withProgress({
         location: vscode.ProgressLocation.Notification,
         cancellable: false
-    }, (progress) => {
-        return new Promise<void>(async (resolve) => { 
-            progress.report( { increment: 10, message: 'Updating Cloudrail...'});
+    }, async (progress) => {
+        progress.report( { increment: 10, message: 'Updating Cloudrail...'});
 
-            CloudrailRunner.updateCloudrail()
-            .then( async () => {
-                Versioning.setCloudrailVersion(await CloudrailRunner.getCloudrailVersion());
-                progress.report( { increment: 90, message: `Cloudrail version: ${Versioning.getCloudrailVersion()}`});
-                await new Promise((resolve) => setTimeout(resolve, 2000));
-                resolve();
-            })
-            .catch( () => {
-                initializeEnvironment(true);
-            });
-        });
+        try {
+            await CloudrailRunner.updateCloudrail();
+            Versioning.setCloudrailVersion(await CloudrailRunner.getCloudrailVersion());
+            progress.report( { increment: 90, message: `Cloudrail version: ${Versioning.getCloudrailVersion()}`});
+            await new Promise((resolve) => setTimeout(resolve, 2000));
+        } catch {
+            initializeEnvironment(true);
+        }
     });
 }

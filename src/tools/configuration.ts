@@ -1,8 +1,6 @@
 import * as vscode from 'vscode';
 import { logger } from '../tools/logger';
-import { resolveHomeDir } from './path_utils';
 import { CloudrailRunner } from '../cloudrail_runner';
-import * as path from 'path';
 
 
 export interface CloudrailConfiguration {

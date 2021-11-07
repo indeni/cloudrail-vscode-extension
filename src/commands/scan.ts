@@ -1,12 +1,12 @@
 import * as vscode from 'vscode';
 import { CloudrailRunner, CloudrailRunResponse, VcsInfo } from '../cloudrail_runner';
-import { getUnsetMandatoryFields, getConfig, CloudrailConfiguration } from '../tools/configuration';
+import { getUnsetMandatoryFields, getConfig } from '../tools/configuration';
 import { initializeEnvironment } from './init';
 import * as path from 'path';
 import { parseJson } from '../tools/parse_utils';
 import { RuleResult } from '../cloudrail_run_result_model';
-import { logger } from '../tools/logger';
-import simpleGit, {SimpleGit, SimpleGitOptions} from 'simple-git';
+import { logger, logPath } from '../tools/logger';
+import simpleGit, {SimpleGitOptions} from 'simple-git';
 import * as fs from 'fs';
 
 
@@ -21,64 +21,65 @@ export async function scan(diagnostics: vscode.DiagnosticCollection) {
     }
 
     diagnostics.clear();
-    let runResults: CloudrailRunResponse;
-    let stdout = '';
+    let runResults: CloudrailRunResponse | undefined;
     const config = await getConfig();
     const onScanEnd = () => { scanInProgress = false; };
+    const onReject = (reject: any) => {onScanEnd(); logger.error(reject);};
     const terraformWorkingDirectory = await getTerraformWorkingDirectory();
     if (!terraformWorkingDirectory) {
         return;
     }
 
-    vscode.window.withProgress({
-        location: vscode.ProgressLocation.Notification,
-        cancellable: false
-    }, async (progress) => {
-        scanInProgress = true;
-        progress.report({ increment: 0, message: 'Starting Cloudrail run'});
+    try {
+        await vscode.window.withProgress({
+            location: vscode.ProgressLocation.Notification,
+            cancellable: false
+        }, async(progress) => {
+            scanInProgress = true;
+            progress.report({ increment: 0, message: 'Starting Cloudrail run'});
+    
+            if (!await initializeEnvironment(false)) {
+                return;
+            }
+    
+            const unsetMandatoryFields = await getUnsetMandatoryFields();
+            if (unsetMandatoryFields.length > 0) {
+                vscode.commands.executeCommand('workbench.action.openSettings', 'cloudrail');
+                vscode.window.showErrorMessage(`The following required options are not set: ${unsetMandatoryFields.join(', ')}. Cloudrail cannot run without this information.`);
+                return;
+            }
+            
+            const vcsInfo = await getVcsInfo(terraformWorkingDirectory);
+            runResults = await CloudrailRunner.cloudrailRun(terraformWorkingDirectory, config.apiKey, config.cloudrailPolicyId, config.awsDefaultRegion, vcsInfo,
+                (data: string) => {
+                    progress.report({ increment: 10, message: data});
+            });
 
-        if (!await initializeEnvironment(false)) {
-            return;
-        }
+            if (runResults === undefined) {
+                vscode.window.showErrorMessage('Cloudrail failed to start');
+            } else if (!runResults.success) {
+                vscode.window.showErrorMessage('Cloudrail Run failed:\n' + runResults.stdout);
+                return;
+            }
 
-        const unsetMandatoryFields = await getUnsetMandatoryFields();
-        if (unsetMandatoryFields.length > 0) {
-            vscode.commands.executeCommand('workbench.action.openSettings', 'cloudrail');
-            vscode.window.showErrorMessage(`The following required options are not set: ${unsetMandatoryFields.join(', ')}. Cloudrail cannot run without this information.`);
-            return;
-        }
-        
-        const vcsInfo = await getVcsInfo(terraformWorkingDirectory);
-        runResults = await CloudrailRunner.cloudrailRun(terraformWorkingDirectory, config.apiKey, config.cloudrailPolicyId, config.awsDefaultRegion, vcsInfo,
-            (data: string) => {
-                stdout += data;
-                progress.report({ increment: 10, message: data});
+            progress.report({ increment: 100, message: 'Applying scan results...'});
+            await handleRunResults(runResults!, diagnostics, terraformWorkingDirectory);
         });
-    }).then( async () => {
-        if (runResults === undefined) {
-            vscode.window.showErrorMessage('Cloudrail failed to start');
-        }
-        if (!runResults.success) {
-            vscode.window.showErrorMessage('Cloudrail Run failed:\n' + runResults.stdout);
-            return;
-        }
+    } catch(e) {
+        logger.error(`Failed to perform scan. reason: ${e}`);
+        vscode.window.showErrorMessage(`An unknown error has occured while performing the scan. Check log for more information: ${logPath}`);
+    } finally {
+        scanInProgress = false;
+    }
 
-        await handleRunResults(runResults, diagnostics, terraformWorkingDirectory);
-    }, onScanEnd
-    ).then( 
-        onScanEnd, 
-        (reject: any) => {
-            onScanEnd();
-            logger.error(reject);
-        } 
-    );
+
+
 }
 
 async function handleRunResults(runResults: CloudrailRunResponse, diagnostics: vscode.DiagnosticCollection, terraformWorkingDirectory: string): Promise<void> {
     const dataObject = await parseJson<RuleResult[]>(runResults.resultsFilePath);
     const failedRules = dataObject.filter(ruleResult => ruleResult.status === 'failed');
     
-
     for (let failedRule of failedRules) {
         for (let issueItem of failedRule.issue_items) {
             const iacMetadata = issueItem.violating_entity.iac_resource_metadata;
@@ -120,7 +121,7 @@ async function getVcsInfo(baseDir: string): Promise<VcsInfo | undefined> {
 	 };
 	 
      try {
-        const git: SimpleGit = simpleGit(options);
+        const git = simpleGit(options);
         if (await git.checkIsRepo()) {
             const branch = (await git.branch()).current;
             const commit = (await git.show()).replace('\n', ' ').split(' ')[1];
@@ -174,7 +175,8 @@ async function getTerraformWorkingDirectory(): Promise<string | undefined> {
             }
         }
 
-        let dirContent = fs.readdirSync(editorDirectoryPath);
+        let dirContent = fs.readdirSync(editorDirectoryPath);;
+        
         let files = dirContent.filter( (value) => {
             return value.match(/.*.tf$/);
         });
@@ -184,7 +186,7 @@ async function getTerraformWorkingDirectory(): Promise<string | undefined> {
             return;
         }
 
-        return editorDirectoryPath;
+         return editorDirectoryPath;
     } else {
         vscode.window.showErrorMessage(instruction);
         return;

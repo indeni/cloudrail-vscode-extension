@@ -31,31 +31,29 @@ export async function initializeEnvironment(showProgress: boolean): Promise<bool
             return;
         }
 
-        reportProgress(progress, showProgress, 20, 'Creating virtual environment if needed...');
-        await CloudrailRunner.createVenv()
-        .then(() => {checkCancellation(token);})
-        .then( async () => {
+        try {
+            reportProgress(progress, showProgress, 20, 'Creating virtual environment if needed...');
+            await CloudrailRunner.createVenv();
+            checkCancellation(token);
+
             if (await CloudrailRunner.getCloudrailVersion()) {
                 reportProgress(progress, showProgress, 70, 'Cloudrail already installed');
             } else {
                 reportProgress(progress, showProgress, 10, 'Installing Cloudrail...');
                 await CloudrailRunner.installCloudrail();
             }
-        })
-        .then(() => {checkCancellation(token);})
-        .then( async () => {
+            checkCancellation(token);
             await CloudrailRunner.setCloudrailVersion();
-        })
-        .then(() => {checkCancellation(token);})
-        .then( async () => {
+            checkCancellation(token);
             reportProgress(progress, showProgress, 10, 'Initialization complete!');
             await new Promise((resolve) => setTimeout(resolve, 2000));
             initialized = true;
-        }).catch((e) => {
+            
+        } catch(e) { 
             vscode.window.showErrorMessage('Cloudrail initialization failed due to: ' + e);
             logger.info('Initialization cancelled due to:\n' + e);
             initialized = false;
-        });
+        }
     }).then(onInitEnd, onInitEnd);
 
     logger.info('Initialization succeeded? ' + initialized);
