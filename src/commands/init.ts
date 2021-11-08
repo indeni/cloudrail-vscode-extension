@@ -2,19 +2,19 @@ import vscode from 'vscode';
 import { CloudrailRunner } from "../cloudrail_runner";
 import { logger } from '../tools/logger';
 
-let initializationInProgress = false; // Boolean that is used to ensure only one initialization processes work
-let lastInitializationSucceeded = false; // Boolean that is used to indicate if last initialization was a success, used when there is an initialization already in progress
+let isInitializationInProgress = false;
+let isLastInitializationSucceeded = false;
 
 export async function initializeEnvironment(showProgress: boolean): Promise<boolean> {
-    if (initializationInProgress) {
+    if (isInitializationInProgress) {
         logger.debug('Initialization in progress - will wait for current initialization to complete');
-        while (initializationInProgress) {
+        while (isInitializationInProgress) {
             await new Promise((resolve) => setTimeout(resolve, 1000));
         }
-        return lastInitializationSucceeded;
+        return isLastInitializationSucceeded;
     }
     
-    initializationInProgress = true;
+    isInitializationInProgress = true;
     let initialized = false;
 
     await vscode.window.withProgress({
@@ -52,8 +52,8 @@ export async function initializeEnvironment(showProgress: boolean): Promise<bool
         }
     });
 
-    initializationInProgress = false; 
-    lastInitializationSucceeded = initialized; 
+    isInitializationInProgress = false; 
+    isLastInitializationSucceeded = initialized; 
     logger.info('Initialization succeeded? ' + initialized);
     return initialized;
 }
@@ -67,8 +67,10 @@ function reportProgress(progress: vscode.Progress<{ message?: string; increment?
     }
 }
 
-function checkCancellation(token: vscode.CancellationToken) {
-    if (token.isCancellationRequested) {
-        throw new Error('User cancelled initialization');
+function checkCancellation(token: vscode.CancellationToken): void {
+    if (!token.isCancellationRequested) {
+        return;
     }
+
+    throw new Error('User cancelled initialization');
 }

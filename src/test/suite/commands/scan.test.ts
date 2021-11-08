@@ -1,15 +1,14 @@
-import sinon, { stub, restore, match, spy } from 'sinon';
 import vscode from 'vscode';
-import * as configuration from '../../../tools/configuration';
-import { describe, beforeEach, afterEach, it } from 'mocha';
-import { scan } from '../../../commands/scan';
-import * as init from '../../../commands/init';
-import simpleGit, { SimpleGit } from 'simple-git';
+import sinon, { stub, restore, match, spy } from 'sinon';
+import { describe, beforeEach, it } from 'mocha';
+import { assert } from 'chai';
 import fs = require('fs');
 import path = require('path');
-import { CloudrailRunner } from '../../../cloudrail_runner';
 import _ from './resources/results.json';
-import { assert } from 'chai';
+import * as configuration from '../../../tools/configuration';
+import { scan } from '../../../commands/scan';
+import * as init from '../../../commands/init';
+import { CloudrailRunner } from '../../../cloudrail_runner';
 
 describe('Scan unit tests', () => {
     beforeEach(() => {

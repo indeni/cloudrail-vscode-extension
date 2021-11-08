@@ -1,8 +1,8 @@
+import vscode from 'vscode';
 import { stub, restore, SinonStub } from 'sinon';
 import { assert } from 'chai';
-import vscode from 'vscode';
-import { getConfig, getUnsetMandatoryFields } from '../../../tools/configuration';
 import { describe, beforeEach, afterEach, it } from 'mocha';
+import { getConfig, getUnsetMandatoryFields } from '../../../tools/configuration';
 import { CloudrailRunner } from '../../../cloudrail_runner';
 
 describe('Configuration unit tests', () => {
