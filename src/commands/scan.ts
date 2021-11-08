@@ -1,6 +1,6 @@
 import vscode from 'vscode';
 import path from 'path';
-import simpleGit, {SimpleGitOptions} from 'simple-git';
+import simpleGit, { SimpleGitOptions } from 'simple-git';
 import fs from 'fs';
 import { CloudrailRunner, CloudrailRunResponse, VcsInfo } from '../cloudrail_runner';
 import { getUnsetMandatoryFields, getConfig } from '../tools/configuration';
