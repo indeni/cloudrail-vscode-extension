@@ -23,26 +23,26 @@ describe('Configuration unit tests', () => {
     it('Configuration specified in the settings page', async () => {
         // Arrange
         getConfigurationStub.withArgs('cloudrail').returns({
-            get: (_s: string) => {
-                if (_s === 'ApiKey')            { return 'MyApiKey'; }
-                if (_s === 'CloudrailPolicyId') { return 'MyCloudrailPolicyId'; }
-                if (_s === 'AwsDefaultRegion')  { return 'MyAwsDefaultRegion'; }
+            get: (settingId: string) => {
+                if (settingId === 'ApiKey')            { return 'MyApiKey'; }
+                if (settingId === 'CloudrailPolicyId') { return 'MyCloudrailPolicyId'; }
+                if (settingId === 'AwsDefaultRegion')  { return 'MyAwsDefaultRegion'; }
             },
           } as vscode.WorkspaceConfiguration);
 
-            // Act
-            const config = await getConfig();
+        // Act
+        const config = await getConfig();
 
-            // Assert
-            assert.equal(config.apiKey, 'MyApiKey');
-            assert.equal(config.cloudrailPolicyId, 'MyCloudrailPolicyId');
-            assert.equal(config.awsDefaultRegion, 'MyAwsDefaultRegion');
+        // Assert
+        assert.equal(config.apiKey, 'MyApiKey');
+        assert.equal(config.cloudrailPolicyId, 'MyCloudrailPolicyId');
+        assert.equal(config.awsDefaultRegion, 'MyAwsDefaultRegion');
     });
 
     it('Get ApiKey from CloudrailRunner', async () => {
         // Arrange
         getConfigurationStub.withArgs('cloudrail').returns({
-            get: (_s: string) => {},
+            get: (settingId: string) => {},
           } as vscode.WorkspaceConfiguration);
 
           getApiKeyStub.withArgs().resolves('ApiKeyFromCloudRunner');
@@ -57,7 +57,7 @@ describe('Configuration unit tests', () => {
     it('getUnsetMandatoryFields - ApiKey is not set', async() => {
         // Arrange
         getConfigurationStub.withArgs('cloudrail').returns({
-            get: (_s: string) => {},
+            get: (settingId: string) => {},
             } as vscode.WorkspaceConfiguration);
 
         getApiKeyStub.withArgs().resolves('');
@@ -73,8 +73,8 @@ describe('Configuration unit tests', () => {
     it('getUnsetMandatoryFields - ApiKey is set', async() => {
         // Arrange
         getConfigurationStub.withArgs('cloudrail').returns({
-            get: (_s: string) => {
-                if (_s === 'ApiKey') { return 'MyApiKey'; }
+            get: (settingId: string) => {
+                if (settingId === 'ApiKey') { return 'MyApiKey'; }
             },
             } as vscode.WorkspaceConfiguration);
 

@@ -74,7 +74,7 @@ export async function scan(diagnostics: vscode.DiagnosticCollection) {
 }
 
 async function handleRunResults(runResults: CloudrailRunResponse, diagnostics: vscode.DiagnosticCollection, terraformWorkingDirectory: string): Promise<void> {
-    const dataObject = await parseJson<Array<RuleResult>>(runResults.resultsFilePath);
+    const dataObject = await parseJson<RuleResult[]>(runResults.resultsFilePath);
     const failedRules = dataObject.filter(ruleResult => ruleResult.status === 'failed');
     
     for (const failedRule of failedRules) {
@@ -183,7 +183,7 @@ async function getTerraformWorkingDirectory(): Promise<string | undefined> {
             return;
         }
 
-         return editorDirectoryPath;
+        return editorDirectoryPath;
     } else {
         vscode.window.showErrorMessage(instruction);
         return;
