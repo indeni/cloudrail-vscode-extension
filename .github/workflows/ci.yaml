@@ -19,5 +19,7 @@ jobs:
       - name: Run compile
         run: npm run compile
       - name: Run tests
-        run: npm run test
+        uses: GabrielBB/xvfb-action@v1
+        with:
+          run: npm run test
       
