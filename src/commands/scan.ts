@@ -1,13 +1,13 @@
-import * as vscode from 'vscode';
+import vscode from 'vscode';
 import { CloudrailRunner, CloudrailRunResponse, VcsInfo } from '../cloudrail_runner';
 import { getUnsetMandatoryFields, getConfig } from '../tools/configuration';
 import { initializeEnvironment } from './init';
-import * as path from 'path';
+import path from 'path';
 import { parseJson } from '../tools/parse_utils';
 import { RuleResult } from '../cloudrail_run_result_model';
 import { logger, logPath } from '../tools/logger';
 import simpleGit, {SimpleGitOptions} from 'simple-git';
-import * as fs from 'fs';
+import fs from 'fs';
 
 
 let scanInProgress = false;
@@ -23,7 +23,6 @@ export async function scan(diagnostics: vscode.DiagnosticCollection) {
     diagnostics.clear();
     let runResults: CloudrailRunResponse | undefined;
     const config = await getConfig();
-    const onScanEnd = () => { scanInProgress = false; };
     const terraformWorkingDirectory = await getTerraformWorkingDirectory();
     if (!terraformWorkingDirectory) {
         return;
@@ -70,9 +69,6 @@ export async function scan(diagnostics: vscode.DiagnosticCollection) {
     } finally {
         scanInProgress = false;
     }
-
-
-
 }
 
 async function handleRunResults(runResults: CloudrailRunResponse, diagnostics: vscode.DiagnosticCollection, terraformWorkingDirectory: string): Promise<void> {
@@ -175,7 +171,6 @@ async function getTerraformWorkingDirectory(): Promise<string | undefined> {
         }
 
         let dirContent = fs.readdirSync(editorDirectoryPath);
-        
         let files = dirContent.filter( (value) => {
             return value.match(/.*.tf$/);
         });
@@ -185,7 +180,7 @@ async function getTerraformWorkingDirectory(): Promise<string | undefined> {
             return;
         }
 
-        return editorDirectoryPath;
+         return editorDirectoryPath;
     } else {
         vscode.window.showErrorMessage(instruction);
         return;

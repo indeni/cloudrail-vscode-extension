@@ -1,4 +1,4 @@
-import * as winston from 'winston';
+import winston from 'winston';
 import { homedir } from 'os';
 import { mkdirSync, existsSync } from 'fs';
 import path from 'path';

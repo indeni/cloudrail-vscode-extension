@@ -1,10 +1,10 @@
-import * as path from 'path';
-import * as fs from 'fs';
+import path from 'path';
+import fs from 'fs';
 import {exec} from 'child_process';
-import * as util from 'util';
+import util from 'util';
 import { Versioning } from './tools/versioning';
-import * as shell from 'shelljs';
-import * as os from 'os';
+import shell from 'shelljs';
+import os from 'os';
 import { logger } from './tools/logger';
 
 

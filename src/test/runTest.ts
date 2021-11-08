@@ -1,4 +1,4 @@
-import * as path from 'path';
+import vscode from 'vscode';
 
 import { runTests } from '@vscode/test-electron';
 
