@@ -1,13 +1,14 @@
-import * as vscode from 'vscode';
+import vscode from 'vscode';
+import path from 'path';
+import simpleGit, { SimpleGitOptions } from 'simple-git';
+import fs from 'fs';
 import { CloudrailRunner, CloudrailRunResponse, VcsInfo } from '../cloudrail_runner';
 import { getUnsetMandatoryFields, getConfig } from '../tools/configuration';
 import { initializeEnvironment } from './init';
-import * as path from 'path';
 import { parseJson } from '../tools/parse_utils';
 import { RuleResult } from '../cloudrail_run_result_model';
 import { logger, logPath } from '../tools/logger';
-import simpleGit, {SimpleGitOptions} from 'simple-git';
-import * as fs from 'fs';
+
 
 
 let scanInProgress = false;
@@ -23,7 +24,6 @@ export async function scan(diagnostics: vscode.DiagnosticCollection) {
     diagnostics.clear();
     let runResults: CloudrailRunResponse | undefined;
     const config = await getConfig();
-    const onScanEnd = () => { scanInProgress = false; };
     const terraformWorkingDirectory = await getTerraformWorkingDirectory();
     if (!terraformWorkingDirectory) {
         return;
@@ -49,10 +49,11 @@ export async function scan(diagnostics: vscode.DiagnosticCollection) {
             }
             
             const vcsInfo = await getVcsInfo(terraformWorkingDirectory);
-            runResults = await CloudrailRunner.cloudrailRun(terraformWorkingDirectory, config.apiKey, config.cloudrailPolicyId, config.awsDefaultRegion, vcsInfo,
-                (data: string) => {
-                    progress.report({ increment: 10, message: data});
-            });
+            const stdoutCallback = (data: string) => {
+                progress.report({ increment: 10, message: data});
+            };
+
+            runResults = await CloudrailRunner.cloudrailRun(terraformWorkingDirectory, config.apiKey, config.cloudrailPolicyId, config.awsDefaultRegion, vcsInfo, stdoutCallback);
 
             if (runResults === undefined) {
                 vscode.window.showErrorMessage('Cloudrail failed to start');
@@ -70,29 +71,26 @@ export async function scan(diagnostics: vscode.DiagnosticCollection) {
     } finally {
         scanInProgress = false;
     }
-
-
-
 }
 
 async function handleRunResults(runResults: CloudrailRunResponse, diagnostics: vscode.DiagnosticCollection, terraformWorkingDirectory: string): Promise<void> {
     const dataObject = await parseJson<RuleResult[]>(runResults.resultsFilePath);
     const failedRules = dataObject.filter(ruleResult => ruleResult.status === 'failed');
     
-    for (let failedRule of failedRules) {
-        for (let issueItem of failedRule.issue_items) {
+    for (const failedRule of failedRules) {
+        for (const issueItem of failedRule.issue_items) {
             const iacMetadata = issueItem.violating_entity.iac_resource_metadata;
-            let docPath = path.join(terraformWorkingDirectory, iacMetadata.file_name);
-            let document = await vscode.workspace.openTextDocument(docPath);
-            let foundDiagnostics: vscode.Diagnostic[] = [];
+            const docPath = path.join(terraformWorkingDirectory, iacMetadata.file_name);
+            const document = await vscode.workspace.openTextDocument(docPath);
+            const foundDiagnostics: vscode.Diagnostic[] = [];
 
-            let existingDiagnostics: readonly vscode.Diagnostic[] | undefined = diagnostics.get(document.uri);
+            const existingDiagnostics: readonly vscode.Diagnostic[] | undefined = diagnostics.get(document.uri);
             Object.assign(foundDiagnostics, existingDiagnostics);
 
-            let startLine = iacMetadata.start_line;
+            const startLine = iacMetadata.start_line;
     
-            let startPos = document.lineAt(startLine - 1).range.start;
-            let endPos = document.lineAt(startLine - 1).range.end;
+            const startPosition = document.lineAt(startLine - 1).range.start;
+            const endPosition = document.lineAt(startLine - 1).range.end;
 
             let severity: vscode.DiagnosticSeverity = vscode.DiagnosticSeverity.Warning;
             if (failedRule.enforcement_mode !== 'advise') {
@@ -101,7 +99,7 @@ async function handleRunResults(runResults: CloudrailRunResponse, diagnostics: v
     
             foundDiagnostics.push({
                 message: issueItem.evidence + '\n\n' + failedRule.iac_remediation_steps,
-                range: new vscode.Range(startPos, endPos),
+                range: new vscode.Range(startPosition, endPosition),
                 severity: severity,
                 source: 'Cloudrail ',
                 code: {value: 'Assessment Page', target: vscode.Uri.parse(runResults.assessmentLink)}
@@ -141,7 +139,7 @@ async function getVcsInfo(baseDir: string): Promise<VcsInfo | undefined> {
             if (repo.startsWith('bitbucket')) {
                 buildLink = 'https://' + repo + '/src/';
                 if (branch.includes('/')) { // For branches like bugfix/branchname or feature/branchname
-                    buildLink += `${commit}`;
+                    buildLink += commit;
                 } else {
                     buildLink += branch;
                 }
@@ -164,18 +162,18 @@ async function getVcsInfo(baseDir: string): Promise<VcsInfo | undefined> {
 
 async function getTerraformWorkingDirectory(): Promise<string | undefined> {
     const activeEditor = vscode.window.activeTextEditor;
-    const instruction = `Open any file in the terraform module to be scanned, then run Cloudrail Scan`;
+    const instruction = 'Open any file in the terraform module to be scanned, then run Cloudrail Scan';
     if (activeEditor) {
         const editorPath = activeEditor.document.uri.fsPath;
         const editorDirectoryPath = path.dirname(editorPath);
         if (!vscode.workspace.getWorkspaceFolder(activeEditor.document.uri)) {
-            if (await vscode.window.showInformationMessage('This file is outside of your workspace. Continue with a Cloudrail scan?', 'Scan', 'Cancel') !== 'Scan') {
+            const shouldScanPromptResult = await vscode.window.showInformationMessage('This file is outside of your workspace. Continue with a Cloudrail scan?', 'Scan', 'Cancel');
+            if (shouldScanPromptResult !== 'Scan') {
                 return;
             }
         }
 
         let dirContent = fs.readdirSync(editorDirectoryPath);
-        
         let files = dirContent.filter( (value) => {
             return value.match(/.*.tf$/);
         });

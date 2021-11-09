@@ -1,4 +1,4 @@
-import * as winston from 'winston';
+import winston from 'winston';
 import { homedir } from 'os';
 import { mkdirSync, existsSync } from 'fs';
 import path from 'path';
@@ -7,7 +7,7 @@ import path from 'path';
 const basePath: string = path.join(homedir(), '.cloudrail');
 const filename = 'cloudrail.vscode.log';
 
-const myFormat = winston.format.combine(
+const loggerFormat = winston.format.combine(
     winston.format.timestamp({format: `MM/DD/YYYY HH:mm:ss`}), 
     winston.format.printf(({ level, message, timestamp }) => {
         console.log(message);
@@ -19,7 +19,7 @@ if (!existsSync(basePath)) {
 }
 
 export const logger = winston.createLogger({
-    format: myFormat,
+    format: loggerFormat,
     transports: [
         new winston.transports.File({ 
             dirname: basePath, 

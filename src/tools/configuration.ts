@@ -1,4 +1,4 @@
-import * as vscode from 'vscode';
+import vscode from 'vscode';
 import { logger } from '../tools/logger';
 import { CloudrailRunner } from '../cloudrail_runner';
 

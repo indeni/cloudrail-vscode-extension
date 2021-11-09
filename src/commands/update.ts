@@ -1,5 +1,5 @@
+import vscode from 'vscode';
 import { Versioning } from "../tools/versioning";
-import * as vscode from 'vscode';
 import { CloudrailRunner } from "../cloudrail_runner";
 import { initializeEnvironment } from "./init";
 
