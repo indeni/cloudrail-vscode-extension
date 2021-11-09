@@ -8,26 +8,20 @@ import { initializeEnvironment } from './init';
 import { parseJson } from '../tools/parse_utils';
 import { RuleResult } from '../cloudrail_run_result_model';
 import { logger, logPath } from '../tools/logger';
-
+import { CloudrailSidebarProvider } from '../sidebar/cloudrail_sidebar_provider';
 
 
 let scanInProgress = false;
 
 
-export async function scan(diagnostics: vscode.DiagnosticCollection) {
+export async function scan(diagnostics: vscode.DiagnosticCollection, sidebarProvider: CloudrailSidebarProvider) {
     if (scanInProgress) {
         logger.debug('Scan in progress - exiting');
         vscode.window.showInformationMessage('Cannot run Cloudrail Scan while another scan is in progress.');
         return;
     }
 
-    diagnostics.clear();
-    let runResults: CloudrailRunResponse | undefined;
-    const config = await getConfig();
-    const terraformWorkingDirectory = await getTerraformWorkingDirectory();
-    if (!terraformWorkingDirectory) {
-        return;
-    }
+    sidebarProvider.resetView();
 
     try {
         await vscode.window.withProgress({
@@ -36,6 +30,14 @@ export async function scan(diagnostics: vscode.DiagnosticCollection) {
         }, async(progress) => {
             scanInProgress = true;
             progress.report({ increment: 0, message: 'Starting Cloudrail run'});
+
+            diagnostics.clear();
+            let runResults: CloudrailRunResponse | undefined;
+            const config = await getConfig();
+            const terraformWorkingDirectory = await getTerraformWorkingDirectory();
+            if (!terraformWorkingDirectory) {
+                return;
+            }
     
             if (!await initializeEnvironment(false)) {
                 return;
@@ -63,7 +65,7 @@ export async function scan(diagnostics: vscode.DiagnosticCollection) {
             }
 
             progress.report({ increment: 100, message: 'Applying scan results...'});
-            await handleRunResults(runResults!, diagnostics, terraformWorkingDirectory);
+            await handleRunResults(runResults!, diagnostics, terraformWorkingDirectory, sidebarProvider);
         });
     } catch(e) {
         logger.error(`Failed to perform scan. reason: ${e}`);
@@ -73,7 +75,7 @@ export async function scan(diagnostics: vscode.DiagnosticCollection) {
     }
 }
 
-async function handleRunResults(runResults: CloudrailRunResponse, diagnostics: vscode.DiagnosticCollection, terraformWorkingDirectory: string): Promise<void> {
+async function handleRunResults(runResults: CloudrailRunResponse, diagnostics: vscode.DiagnosticCollection, terraformWorkingDirectory: string, sidebarProvider: CloudrailSidebarProvider): Promise<void> {
     const dataObject = await parseJson<RuleResult[]>(runResults.resultsFilePath);
     const failedRules = dataObject.filter(ruleResult => ruleResult.status === 'failed');
     
@@ -98,7 +100,7 @@ async function handleRunResults(runResults: CloudrailRunResponse, diagnostics: v
             }
     
             foundDiagnostics.push({
-                message: issueItem.evidence + '\n\n' + failedRule.iac_remediation_steps,
+                message: `Issue: ${issueItem.evidence}\nFix: ${failedRule.iac_remediation_steps}`,
                 range: new vscode.Range(startPosition, endPosition),
                 severity: severity,
                 source: 'Cloudrail ',
@@ -108,6 +110,8 @@ async function handleRunResults(runResults: CloudrailRunResponse, diagnostics: v
             diagnostics.set(document.uri ,foundDiagnostics);
         }
     }
+
+    sidebarProvider.updateRunResults(failedRules, terraformWorkingDirectory, runResults.assessmentLink);
 }
 
 async function getVcsInfo(baseDir: string): Promise<VcsInfo | undefined> {

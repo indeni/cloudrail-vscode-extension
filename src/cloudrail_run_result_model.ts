@@ -8,6 +8,7 @@ export interface IacResourceMetadata {
 
 export interface IacEntity {
     iac_resource_metadata: IacResourceMetadata;
+    iac_entity_id: string;
 }
 
 
@@ -24,4 +25,5 @@ export interface RuleResult {
     enforcement_mode: string;
     iac_remediation_steps: string;
     issue_items: IssueItem[];
+    severity: string;
 }

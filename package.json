@@ -50,6 +50,47 @@
 				"title": "Cloudrail Update"
 			}
 		],
+		"views": {
+			"cloudrail": [
+				{
+					"id": "cloudrail.commands",
+					"name": "Cloudrail Commands",
+					"contextualTitle": "Cloudrail Commands"
+				},
+				{
+					"id": "cloudrail.issues",
+					"name": "Issues Explorer",
+					"visibility": "collapsed",
+					"contextualTitle": "Issues Explorer"
+				},
+				{
+					"id": "cloudrail.issue_info",
+					"name": "Issue Information",
+					"visibility": "collapsed",
+					"contextualTitle": "Issue Information",
+					"type": "webview"
+				}
+			]
+		},
+		"viewsContainers": {
+			"activitybar": [
+				{
+					"id": "cloudrail",
+					"title": "Cloudrail",
+					"icon": "images/cloudrail_logo.png"
+				}
+			]
+		},
+		"viewsWelcome": [
+			{
+				"view": "cloudrail.issues",
+				"contents": "There are currently no issues.\n[Run Cloudrail Scan](command:cloudrail.scan)"
+			},
+			{
+				"view": "cloudrail.commands",
+				"contents": "[Run Scan](command:cloudrail.scan)\n[Show Version](command:cloudrail.version)\n[Open Extension Settings](command:cloudrail.settings)\n[Update Cloudrail](command:cloudrail.update)\n[inititalize Environment](command:cloudrail.init)"
+			}
+		],
 		"configuration": {
 			"type": "object",
 			"title": "Cloudrail",

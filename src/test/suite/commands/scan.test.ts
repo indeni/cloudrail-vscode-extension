@@ -9,6 +9,7 @@ import * as configuration from '../../../tools/configuration';
 import { scan } from '../../../commands/scan';
 import * as init from '../../../commands/init';
 import { CloudrailRunner } from '../../../cloudrail_runner';
+import { CloudrailSidebarProvider } from '../../../sidebar/cloudrail_sidebar_provider';
 
 describe('Scan unit tests', () => {
     beforeEach(() => {
@@ -94,9 +95,12 @@ describe('Scan unit tests', () => {
         const diagnosticSpy = spy(diagnostics, "set");
 
         stub(diagnostics, "get").returns(undefined);
+
+        const cloudrailSidebarProviderStub = stub(CloudrailSidebarProvider);
+        stub(cloudrailSidebarProviderStub.prototype, 'resetView').returns();
         
         // Act
-        await scan(diagnostics);
+        await scan(diagnostics, cloudrailSidebarProviderStub.prototype);
 
         // Assert
         // @ts-ignore
