@@ -140,7 +140,7 @@ export class CloudrailRunner {
         });
 
         run.on('close', (exitCode) => {
-            success = exitCode === 0;
+            success = exitCode === 0 || exitCode === 1;
             running = false;
             logger.info(`cloudrail run finished with exit code ${exitCode}`);
         });
@@ -153,7 +153,7 @@ export class CloudrailRunner {
             logger.info('resultsFile: ' + resultsFilePath);('Cloudrail run results saved to: ' + resultsFilePath);
         }
         
-        return {resultsFilePath: resultsFilePath, success: success, stdout: stdout, assessmentLink: assessmentLink}; 
+        return {resultsFilePath: resultsFilePath, success: success, stdout: stdout, assessmentLink: assessmentLink};
     }
 
     static async getApiKey(): Promise<string> {

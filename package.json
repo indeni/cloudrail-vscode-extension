@@ -24,32 +24,107 @@
 		"gcp"
 	],
 	"activationEvents": [
-		"workspaceContains:**/*.tf"
+		"*"
 	],
 	"main": "./dist/extension.js",
 	"contributes": {
 		"commands": [
 			{
 				"command": "cloudrail.version",
-				"title": "Cloudrail Version"
+				"title": "Version",
+				"category": "Cloudrail"
 			},
 			{
 				"command": "cloudrail.scan",
-				"title": "Cloudrail Scan"
+				"title": "Scan",
+				"icon": "$(run)",
+				"category": "Cloudrail"
 			},
 			{
 				"command": "cloudrail.settings",
-				"title": "Cloudrail Settings"
+				"title": "Settings",
+				"icon": "$(gear)",
+				"category": "Cloudrail"
 			},
 			{
 				"command": "cloudrail.init",
-				"title": "Cloudrail Init"
+				"title": "Initialize",
+				"category": "Cloudrail"
 			},
 			{
 				"command": "cloudrail.update",
-				"title": "Cloudrail Update"
+				"title": "Update",
+				"category": "Cloudrail"
 			}
 		],
+		"views": {
+			"cloudrail": [
+				{
+					"id": "cloudrail.issues",
+					"name": "Issues Explorer",
+					"visibility": "collapsed",
+					"contextualTitle": "Issues Explorer"
+				},
+				{
+					"id": "cloudrail.issue_info",
+					"name": "Issue Information",
+					"visibility": "collapsed",
+					"contextualTitle": "Issue Information",
+					"type": "webview"
+				}
+			]
+		},
+		"viewsContainers": {
+			"activitybar": [
+				{
+					"id": "cloudrail",
+					"title": "Cloudrail",
+					"icon": "images/vscode_cloudrail.svg"
+				}
+			]
+		},
+		"viewsWelcome": [
+			{
+				"view": "cloudrail.issues",
+				"contents": "There are currently no issues.\n[Run Cloudrail Scan](command:cloudrail.scan)"
+			}
+		],
+		"menus": {
+			"view/title": [
+				{
+					"command": "cloudrail.scan",
+					"when": "view == cloudrail.issues",
+					"group": "navigation"
+				},
+				{
+					"command": "cloudrail.settings",
+					"when": "view == cloudrail.issues",
+					"group": "navigation"
+				},
+				{
+					"command": "cloudrail.scan",
+					"when": "view == cloudrail.issues",
+					"group": "inline"
+				},
+				{
+					"command": "cloudrail.settings",
+					"when": "view == cloudrail.issues",
+					"group": "inline"
+				},
+				{
+					"command": "cloudrail.update",
+					"when": "view == cloudrail.issues"
+				},
+				{
+					"command": "cloudrail.version",
+					"when": "view == cloudrail.issues"
+				},
+				{
+					"command": "cloudrail.init",
+					"when": "view == cloudrail.issues"
+				}
+			]
+		},
 		"configuration": {
 			"type": "object",
 			"title": "Cloudrail",
