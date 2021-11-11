@@ -21,7 +21,8 @@ export async function scan(diagnostics: vscode.DiagnosticCollection, sidebarProv
         return;
     }
 
-    sidebarProvider.resetView();
+    sidebarProvider.scanInProgressView();
+    let isSuccessfulScan = false;
 
     try {
         await vscode.window.withProgress({
@@ -66,11 +67,15 @@ export async function scan(diagnostics: vscode.DiagnosticCollection, sidebarProv
 
             progress.report({ increment: 100, message: 'Applying scan results...'});
             await handleRunResults(runResults!, diagnostics, terraformWorkingDirectory, sidebarProvider);
+            isSuccessfulScan = true;
         });
     } catch(e) {
         logger.error(`Failed to perform scan. reason: ${e}`);
         vscode.window.showErrorMessage(`An unknown error has occured while performing the scan. Check log for more information: ${logPath}`);
     } finally {
+        if (!isSuccessfulScan) {
+            sidebarProvider.resetView('Last scan failed');
+        }
         scanInProgress = false;
     }
 }

@@ -49,7 +49,14 @@ export class CloudrailSidebarProvider implements vscode.TreeDataProvider<Cloudra
         }
     }
 
-    resetView() {
+    resetView(message: string) {
+        this.elements = [new vscode.TreeItem(message, vscode.TreeItemCollapsibleState.None)];
+        this._assessmentLink = '';
+        this.sidebarIssueInfoWebviewProvider.resetView();
+        this._onDidChangeTreeData.fire();
+    }
+
+    scanInProgressView() {
         this.elements = [new vscode.TreeItem('Scanning, please wait...', vscode.TreeItemCollapsibleState.None)];
         this._assessmentLink = '';
         this.sidebarIssueInfoWebviewProvider.resetView();
@@ -92,12 +99,12 @@ export class CloudrailSidebarProvider implements vscode.TreeDataProvider<Cloudra
         const base = path.join(this.extensionPath, 'images');
         if (ruleResult.enforcement_mode === 'advise') {
             ruleTreeItem.iconPath =  {
-                light: path.join(base, 'advise_mode_white.svg'),
+                light: path.join(base, 'advise_mode_orange.svg'),
                 dark: path.join(base, 'advise_mode_orange.svg')
             };
         } else {
             ruleTreeItem.iconPath =  {
-                light: path.join(base, 'mandate_mode_white.svg'),
+                light: path.join(base, 'mandate_mode_red.svg'),
                 dark: path.join(base, 'mandate_mode_red.svg')
             };
         }
