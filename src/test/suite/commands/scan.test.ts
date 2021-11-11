@@ -97,6 +97,7 @@ describe('Scan unit tests', () => {
         stub(diagnostics, "get").returns(undefined);
 
         const cloudrailSidebarProviderStub = stub(CloudrailSidebarProvider);
+        stub(cloudrailSidebarProviderStub.prototype, 'scanInProgressView').returns();
         stub(cloudrailSidebarProviderStub.prototype, 'resetView').returns();
         
         // Act

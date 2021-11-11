@@ -57,10 +57,7 @@ export class CloudrailSidebarProvider implements vscode.TreeDataProvider<Cloudra
     }
 
     scanInProgressView() {
-        this.elements = [new vscode.TreeItem('Scanning, please wait...', vscode.TreeItemCollapsibleState.None)];
-        this._assessmentLink = '';
-        this.sidebarIssueInfoWebviewProvider.resetView();
-        this._onDidChangeTreeData.fire();
+        this.resetView('Scanning, please wait...')
     }
 
     updateRunResults(failedRulesResults: RuleResult[], basePath: string, assessmentLink: string): void {
