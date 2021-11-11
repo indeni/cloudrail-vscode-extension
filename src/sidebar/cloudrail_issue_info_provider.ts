@@ -20,7 +20,7 @@ export class CloudrailIssueInfoProvider implements WebviewViewProvider {
 
     resetView(): void {
         if (this.view) {
-            this.view.html = `<h3>No issue selected. Please run Cloudrail Scan and choose an issue</h3>`;
+            this.view.html = `No issue selected. Please run Cloudrail Scan and choose an issue`;
         }
     }
 

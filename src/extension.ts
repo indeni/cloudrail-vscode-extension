@@ -41,7 +41,7 @@ export function activate(context: vscode.ExtensionContext) {
 		})
 	];
 
-	for (let command of commands) {
+	for (const command of commands) {
 		context.subscriptions.push(command);
 	}
 }

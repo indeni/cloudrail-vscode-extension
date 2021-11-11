@@ -5,19 +5,21 @@ import { CloudrailIssueInfoProvider } from './cloudrail_issue_info_provider';
 import { CloudrailIssueItemTreeItem, CloudrailRuleTreeItem, CloudrailTreeItem } from './cloudrail_tree_item';
 
 export class CloudrailSidebarProvider implements vscode.TreeDataProvider<CloudrailTreeItem> {
-    private _assessmentLink: string | undefined;
     private _onDidChangeTreeData: vscode.EventEmitter<CloudrailTreeItem | undefined | null | void> = new vscode.EventEmitter<CloudrailTreeItem | undefined | null | void>();
     readonly onDidChangeTreeData: vscode.Event<CloudrailTreeItem | undefined | null | void> = this._onDidChangeTreeData.event;
     private readonly sidebarIssueInfoWebviewProvider: CloudrailIssueInfoProvider;
-
+    private readonly extensionPath: string;
     private elements: CloudrailTreeItem[] = [];
+    private _assessmentLink: string | undefined;
 
     constructor(context: vscode.ExtensionContext) {
         this.sidebarIssueInfoWebviewProvider = new CloudrailIssueInfoProvider();
         const sidebarIssueTree = vscode.window.createTreeView("cloudrail.issues", {
-            treeDataProvider: this
+            treeDataProvider: this,
+            canSelectMany: false
         });
-
+        
+        this.extensionPath = context.extensionPath;
         const sidebarIssueWebview = vscode.window.registerWebviewViewProvider("cloudrail.issue_info", this.sidebarIssueInfoWebviewProvider);
         context.subscriptions.push(sidebarIssueWebview);
     
@@ -48,10 +50,10 @@ export class CloudrailSidebarProvider implements vscode.TreeDataProvider<Cloudra
     }
 
     resetView() {
-        this.elements = [];
+        this.elements = [new vscode.TreeItem('Scanning, please wait...', vscode.TreeItemCollapsibleState.None)];
         this._assessmentLink = '';
-        this._onDidChangeTreeData.fire();
         this.sidebarIssueInfoWebviewProvider.resetView();
+        this._onDidChangeTreeData.fire();
     }
 
     updateRunResults(failedRulesResults: RuleResult[], basePath: string, assessmentLink: string): void {
@@ -86,6 +88,19 @@ export class CloudrailSidebarProvider implements vscode.TreeDataProvider<Cloudra
     }
 
     private toRuleTreeItem(ruleResult: RuleResult, children: CloudrailIssueItemTreeItem[]): CloudrailRuleTreeItem {
-        return new CloudrailRuleTreeItem(ruleResult.rule_name, ruleResult.severity, ruleResult.enforcement_mode, children);
+        const ruleTreeItem = new CloudrailRuleTreeItem(ruleResult.rule_name, ruleResult.severity, ruleResult.enforcement_mode, children);
+        const base = path.join(this.extensionPath, 'images');
+        if (ruleResult.enforcement_mode === 'advise') {
+            ruleTreeItem.iconPath =  {
+                light: path.join(base, 'advise_mode_white.svg'),
+                dark: path.join(base, 'advise_mode_orange.svg')
+            };
+        } else {
+            ruleTreeItem.iconPath =  {
+                light: path.join(base, 'mandate_mode_white.svg'),
+                dark: path.join(base, 'mandate_mode_red.svg')
+            };
+        }
+        return ruleTreeItem;
     } 
 }

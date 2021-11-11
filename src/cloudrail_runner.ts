@@ -153,7 +153,7 @@ export class CloudrailRunner {
             logger.info('resultsFile: ' + resultsFilePath);('Cloudrail run results saved to: ' + resultsFilePath);
         }
         
-        return {resultsFilePath: resultsFilePath, success: success, stdout: stdout, assessmentLink: assessmentLink}; 
+        return {resultsFilePath: resultsFilePath, success: success, stdout: stdout, assessmentLink: assessmentLink};
     }
 
     static async getApiKey(): Promise<string> {
