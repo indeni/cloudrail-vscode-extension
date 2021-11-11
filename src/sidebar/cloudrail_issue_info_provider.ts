@@ -31,9 +31,9 @@ export class CloudrailIssueInfoProvider implements WebviewViewProvider {
 
             <h3>Severity: ${element.severity}</h3>
 
-            <h3> Enforcement: ${element.enforcementMode}</h3>
+            Enforcement: ${element.enforcementMode}
 
-            <h3>Number of issues: ${element.children.length}</h3>
+            Number of issues: ${element.children.length}
             `;
         } else if (element instanceof CloudrailIssueItemTreeItem) {
             return `
