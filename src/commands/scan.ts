@@ -8,7 +8,7 @@ import { initializeEnvironment } from './init';
 import { parseJson } from '../tools/parse_utils';
 import { RuleResult } from '../cloudrail_run_result_model';
 import { logger, logPath } from '../tools/logger';
-import { CloudrailSidebarProvider } from '../sidebar/cloudrail_sidebar_provider';
+import { CloudrailSidebarProvider, TreeViewIcon } from '../sidebar/cloudrail_sidebar_provider';
 
 
 let scanInProgress = false;
@@ -74,7 +74,7 @@ export async function scan(diagnostics: vscode.DiagnosticCollection, sidebarProv
         vscode.window.showErrorMessage(`An unknown error has occured while performing the scan. Check log for more information: ${logPath}`);
     } finally {
         if (!isSuccessfulScan) {
-            sidebarProvider.resetView('Last scan failed');
+            sidebarProvider.resetView('Last scan failed', TreeViewIcon.Error);
         }
         scanInProgress = false;
     }
