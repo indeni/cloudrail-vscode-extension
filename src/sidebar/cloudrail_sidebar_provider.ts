@@ -1,10 +1,12 @@
 import path from 'path';
 import vscode from 'vscode';
+import { CloudrailRunResponse } from '../cloudrail_runner';
 import { IssueItem, RuleResult } from '../cloudrail_run_result_model';
+import { RunResultsSubscriber } from '../run_result_subscriber';
 import { CloudrailIssueInfoProvider } from './cloudrail_issue_info_provider';
 import { CloudrailIssueItemTreeItem, CloudrailRuleTreeItem, CloudrailTreeItem } from './cloudrail_tree_item';
 
-export class CloudrailSidebarProvider implements vscode.TreeDataProvider<CloudrailTreeItem> {
+export class CloudrailSidebarProvider implements vscode.TreeDataProvider<CloudrailTreeItem>, RunResultsSubscriber {
     private _onDidChangeTreeData: vscode.EventEmitter<CloudrailTreeItem | undefined | null | void> = new vscode.EventEmitter<CloudrailTreeItem | undefined | null | void>();
     readonly onDidChangeTreeData: vscode.Event<CloudrailTreeItem | undefined | null | void> = this._onDidChangeTreeData.event;
     private readonly sidebarIssueInfoWebviewProvider: CloudrailIssueInfoProvider;
@@ -56,22 +58,26 @@ export class CloudrailSidebarProvider implements vscode.TreeDataProvider<Cloudra
         this._onDidChangeTreeData.fire();
     }
 
-    scanInProgressView() {
-        this.resetView('Scanning, please wait...')
+    async assessmentStart(): Promise<void> {
+        this.resetView('Scanning, please wait...');
     }
 
-    updateRunResults(failedRulesResults: RuleResult[], basePath: string, assessmentLink: string): void {
-        this.elements = [];
-        this._assessmentLink = assessmentLink;
+    async assessmentFailed(): Promise<void> {
+        this.resetView('Last scan failed');
+    }
 
-        for (const failedRuleResult of failedRulesResults) {
+    async updateRunResults(runResults: CloudrailRunResponse, ruleResults: RuleResult[], terraformWorkingDirectory: string): Promise<void> {
+        this.elements = [];
+        this._assessmentLink = runResults.assessmentLink;
+        const failedRules = ruleResults.filter(ruleResult => ruleResult.status === 'failed');
+
+        for (const failedRuleResult of failedRules) {
             const issueItemTreeItems = [];
             for (const issueItem of failedRuleResult.issue_items) {
-                issueItemTreeItems.push(this.toIssueItemTreeItem(issueItem, basePath, failedRuleResult));
+                issueItemTreeItems.push(this.toIssueItemTreeItem(issueItem, terraformWorkingDirectory, failedRuleResult));
             }
             
             this.elements.push(this.toRuleTreeItem(failedRuleResult, issueItemTreeItems));
-            
         }
 
         this._onDidChangeTreeData.fire();
@@ -85,7 +91,7 @@ export class CloudrailSidebarProvider implements vscode.TreeDataProvider<Cloudra
             entity.iac_resource_metadata.start_line,
             vscode.Uri.file(path.join(basePath, entity.iac_resource_metadata.file_name)),
             ruleResult.rule_name,
-            issueItem.evidence,
+            this.parseEvidence(issueItem.evidence),
             ruleResult.iac_remediation_steps,
             this._assessmentLink!,
         );
@@ -107,4 +113,20 @@ export class CloudrailSidebarProvider implements vscode.TreeDataProvider<Cloudra
         }
         return ruleTreeItem;
     } 
+
+    private parseEvidence(evidence: string): string {
+        let parsedEvidence = evidence.replace(/<.*>/g, (link) => {
+            link = link.replace('<', '').replace('>', '');
+            return `<a href="${link}">${link}</a>`;
+        }).replace(/\.\s/g, '<br>');
+
+        parsedEvidence = parsedEvidence.replace(/~.*~/g, (code) => {
+            code = code.replace(/~/g, '');
+            return `<code>${code}</code>`;
+        });
+
+        parsedEvidence = parsedEvidence.replace(/\t/g, '&nbsp;&nbsp;&nbsp;&nbsp;');
+
+        return parsedEvidence;
+    }
 }

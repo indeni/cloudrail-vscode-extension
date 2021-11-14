@@ -67,8 +67,11 @@ export class CloudrailRunner {
         logger.info('Finished installing cloudrail pip package');
     }
 
-    static async setCloudrailVersion(): Promise<void> {
-        let version: string | undefined = await this.getCloudrailVersion();
+    static async setCloudrailVersion(version?: string): Promise<void> {
+        if (!version) {
+            version = await this.getCloudrailVersion();
+        }
+
         if (version) {
             Versioning.setCloudrailVersion(version);
         }
