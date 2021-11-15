@@ -29,7 +29,3 @@ export function parseEvidence(evidence: string, format: EvidenceFormat): string 
     parsedEvidence = parsedEvidence.replace(/~/g, '');
     return format === EvidenceFormat.html ? parsedEvidence.replace(/\.\s/g, '<br>') : parsedEvidence.replace(/\.\s/g, '\n'); 
 }
-
-function getTab(format: EvidenceFormat): string {
-    return format === EvidenceFormat.html ? '&nbsp;&nbsp;&nbsp;&nbsp;|' : '';
-}
