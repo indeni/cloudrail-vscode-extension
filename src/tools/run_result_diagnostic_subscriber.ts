@@ -3,6 +3,7 @@ import path from 'path';
 import { CloudrailRunResponse } from '../cloudrail_runner';
 import { RuleResult } from '../cloudrail_run_result_model';
 import { RunResultsSubscriber } from '../run_result_subscriber';
+import { EvidenceFormat, parseEvidence } from './parse_utils';
 
 export default class RunResultDiagnosticSubscriber implements RunResultsSubscriber{
     constructor(private diagnostics: vscode.DiagnosticCollection) {}
@@ -50,12 +51,6 @@ export default class RunResultDiagnosticSubscriber implements RunResultsSubscrib
     }
 
     private toMessage(evidence: string, remediation: string): string {
-        let message = `Issue: ${evidence}`
-            .replace(/~/g, '')
-            .replace(/</g, '')
-            .replace(/>/g, '')
-            .replace(/\t/g, '    ')
-            .replace('. ', '\n');
-        return `${message}\n\nRemediation: ${remediation}`;
+        return `Issue:\n${parseEvidence(evidence, EvidenceFormat.plainText)}\n\nRemediation:\n${remediation}`;
     }
 }

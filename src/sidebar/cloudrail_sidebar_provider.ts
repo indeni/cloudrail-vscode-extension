@@ -3,6 +3,7 @@ import vscode from 'vscode';
 import { CloudrailRunResponse } from '../cloudrail_runner';
 import { IssueItem, RuleResult } from '../cloudrail_run_result_model';
 import { RunResultsSubscriber } from '../run_result_subscriber';
+import { EvidenceFormat, parseEvidence, parseHtmlLinks } from '../tools/parse_utils';
 import { CloudrailIssueInfoProvider } from './cloudrail_issue_info_provider';
 import { CloudrailIssueItemTreeItem, CloudrailRuleTreeItem, CloudrailTreeItem } from './cloudrail_tree_item';
 
@@ -91,8 +92,8 @@ export class CloudrailSidebarProvider implements vscode.TreeDataProvider<Cloudra
             entity.iac_resource_metadata.start_line,
             vscode.Uri.file(path.join(basePath, entity.iac_resource_metadata.file_name)),
             ruleResult.rule_name,
-            this.parseEvidence(issueItem.evidence),
-            ruleResult.iac_remediation_steps,
+            parseEvidence(issueItem.evidence, EvidenceFormat.html),
+            parseHtmlLinks(ruleResult.iac_remediation_steps),
             this._assessmentLink!,
         );
     }
@@ -112,21 +113,5 @@ export class CloudrailSidebarProvider implements vscode.TreeDataProvider<Cloudra
             };
         }
         return ruleTreeItem;
-    } 
-
-    private parseEvidence(evidence: string): string {
-        let parsedEvidence = evidence.replace(/<.*>/g, (link) => {
-            link = link.replace('<', '').replace('>', '');
-            return `<a href="${link}">${link}</a>`;
-        }).replace(/\.\s/g, '<br>');
-
-        parsedEvidence = parsedEvidence.replace(/~.*~/g, (code) => {
-            code = code.replace(/~/g, '');
-            return `<code>${code}</code>`;
-        });
-
-        parsedEvidence = parsedEvidence.replace(/\t/g, '&nbsp;&nbsp;&nbsp;&nbsp;');
-
-        return parsedEvidence;
     }
 }

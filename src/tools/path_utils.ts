@@ -22,6 +22,6 @@ export async function getActiveTextEditorDirectoryInfo(): Promise<{path?: string
         let dirContent = fs.readdirSync(editorDirectoryPath);
         return {path: editorDirectoryPath, isInWorkspace: isInWorkspace, dirContent};
     } else {
-        return {}
+        return {};
     }
 }

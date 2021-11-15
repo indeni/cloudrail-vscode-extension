@@ -34,7 +34,7 @@ describe('path_utils tests', () => {
         // Assert
         assert.equal(activeTextEditorDirectoryInfo.path, expectedTerraformWorkingDirectory);
         assert.equal(activeTextEditorDirectoryInfo.isInWorkspace, true);
-        expect(activeTextEditorDirectoryInfo.dirContent).to.eql([activeTextEditorDocumentUriFsPath])
+        expect(activeTextEditorDirectoryInfo.dirContent).to.eql([activeTextEditorDocumentUriFsPath]);
     });
 
     it('getActiveTextEditorDirectoryInfo - Directory with files not in the workspace', async () => {
@@ -60,7 +60,7 @@ describe('path_utils tests', () => {
         // Assert
         assert.equal(activeTextEditorDirectoryInfo.path, expectedTerraformWorkingDirectory);
         assert.equal(activeTextEditorDirectoryInfo.isInWorkspace, false);
-        expect(activeTextEditorDirectoryInfo.dirContent).to.eql([activeTextEditorDocumentUriFsPath])
+        expect(activeTextEditorDirectoryInfo.dirContent).to.eql([activeTextEditorDocumentUriFsPath]);
     });
 
     it('getActiveTextEditorDirectoryInfo - no active text editor', async () => {
