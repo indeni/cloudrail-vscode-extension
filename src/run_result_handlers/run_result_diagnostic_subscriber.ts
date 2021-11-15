@@ -26,7 +26,7 @@ export default class RunResultDiagnosticSubscriber implements RunResultsSubscrib
                 const existingDiagnostics: readonly vscode.Diagnostic[] | undefined = this.diagnostics.get(document.uri);
                 Object.assign(foundDiagnostics, existingDiagnostics);
 
-                foundDiagnostics.push(diagnostic)
+                foundDiagnostics.push(diagnostic);
                 this.diagnostics.set(document.uri ,foundDiagnostics);
             }
         }
