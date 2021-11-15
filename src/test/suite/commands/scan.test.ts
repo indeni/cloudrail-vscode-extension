@@ -7,8 +7,8 @@ import scan from '../../../commands/scan';
 import * as init from '../../../commands/init';
 import { CloudrailRunner } from '../../../cloudrail_runner';
 import * as path_utils from '../../../tools/path_utils';
-import RunResultPublisher from '../../../tools/run_result_publisher';
 import { assert } from 'chai';
+import RunResultPublisher from '../../../run_result_handlers/run_result_publisher';
 
 describe('Scan unit tests', () => {
     beforeEach(() => {
@@ -52,9 +52,9 @@ describe('Scan unit tests', () => {
         await scan(runResultPublisher);
 
         // Assert
-        assert.isTrue(runResultPublisherSpy.assessmentStart.calledOnce);
-        assert.isTrue(runResultPublisherSpy.updateRunResults.calledOnce);
-        assert.isFalse(runResultPublisherSpy.assessmentFailed.called);
+        assert.isTrue(runResultPublisherSpy.assessmentStart.calledOnce, 'assessmentStart was not called');
+        assert.isTrue(runResultPublisherSpy.updateRunResults.calledOnce, 'updateRunResults was not called');
+        assert.isFalse(runResultPublisherSpy.assessmentFailed.called, 'assessmentFailed was called');
 
         
     }).timeout(5000);

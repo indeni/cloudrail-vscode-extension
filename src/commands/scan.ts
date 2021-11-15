@@ -5,7 +5,7 @@ import { getUnsetMandatoryFields, getConfig } from '../tools/configuration';
 import { awaitInitialization, initializeEnvironment } from './init';
 import { logger, logPath } from '../tools/logger';
 import { getActiveTextEditorDirectoryInfo } from '../tools/path_utils';
-import RunResultPublisher from '../tools/run_result_publisher';
+import RunResultPublisher from '../run_result_handlers/run_result_publisher';
 
 
 let scanInProgress = false;
@@ -66,9 +66,10 @@ export default async function scan(runResultPublisher: RunResultPublisher) {
         logger.error(`Failed to perform scan. reason: ${e}`);
         if (!await CloudrailRunner.getCloudrailVersion()) {
             vscode.window.showInformationMessage('Cloudrail is not installed, reinitializing and starting again...');
-            await initializeEnvironment(true);
-            scanInProgress = false;
-            scan(runResultPublisher);
+            if (await initializeEnvironment(true)) {
+                scanInProgress = false;
+                scan(runResultPublisher);
+            }
         } else {
             vscode.window.showErrorMessage(`An unknown error has occured while performing the scan. Check log for more information: ${logPath}`);
         }

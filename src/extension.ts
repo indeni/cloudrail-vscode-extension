@@ -5,9 +5,9 @@ import scan from './commands/scan';
 import { initializeEnvironment } from './commands/init';
 import { updateCloudrail } from './commands/update';
 import { logger } from './tools/logger';
-import { CloudrailSidebarProvider } from './sidebar/cloudrail_sidebar_provider';
-import RunResultDiagnosticSubscriber from './tools/run_result_diagnostic_subscriber';
-import RunResultPublisher from './tools/run_result_publisher';
+import RunResultPublisher from './run_result_handlers/run_result_publisher';
+import RunResultDiagnosticSubscriber from './run_result_handlers/run_result_diagnostic_subscriber';
+import CloudrailSidebarProvider from './run_result_handlers/sidebar/cloudrail_sidebar_provider';
 
 
 export function activate(context: vscode.ExtensionContext) {

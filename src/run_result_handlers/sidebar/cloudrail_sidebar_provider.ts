@@ -1,13 +1,13 @@
 import path from 'path';
 import vscode from 'vscode';
-import { CloudrailRunResponse } from '../cloudrail_runner';
-import { IssueItem, RuleResult } from '../cloudrail_run_result_model';
+import { CloudrailRunResponse } from '../../cloudrail_runner';
+import { IssueItem, RuleResult } from '../../cloudrail_run_result_model';
 import { RunResultsSubscriber } from '../run_result_subscriber';
-import { EvidenceFormat, parseEvidence, parseHtmlLinks } from '../tools/parse_utils';
+import { EvidenceFormat, parseEvidence, parseHtmlLinks } from '../../tools/parse_utils';
 import { CloudrailIssueInfoProvider } from './cloudrail_issue_info_provider';
 import { CloudrailIssueItemTreeItem, CloudrailRuleTreeItem, CloudrailTreeItem } from './cloudrail_tree_item';
 
-export class CloudrailSidebarProvider implements vscode.TreeDataProvider<CloudrailTreeItem>, RunResultsSubscriber {
+export default class CloudrailSidebarProvider implements vscode.TreeDataProvider<CloudrailTreeItem>, RunResultsSubscriber {
     private _onDidChangeTreeData: vscode.EventEmitter<CloudrailTreeItem | undefined | null | void> = new vscode.EventEmitter<CloudrailTreeItem | undefined | null | void>();
     readonly onDidChangeTreeData: vscode.Event<CloudrailTreeItem | undefined | null | void> = this._onDidChangeTreeData.event;
     private readonly sidebarIssueInfoWebviewProvider: CloudrailIssueInfoProvider;

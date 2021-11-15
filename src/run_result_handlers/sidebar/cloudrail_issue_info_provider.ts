@@ -1,4 +1,5 @@
 import { CancellationToken, Webview, WebviewView, WebviewViewProvider, WebviewViewResolveContext } from "vscode";
+import { toTitle } from "../../tools/parse_utils";
 import { CloudrailIssueItemTreeItem, CloudrailRuleTreeItem, CloudrailTreeItem } from "./cloudrail_tree_item";
 
 
@@ -29,11 +30,11 @@ export class CloudrailIssueInfoProvider implements WebviewViewProvider {
             return `
             <h2>${element.ruleName}</h2>
 
-            <h3>Severity: ${element.severity}</h3>
-
-            Enforcement: ${element.enforcementMode}
-
-            Number of issues: ${element.children.length}
+            <h4>Severity: ${toTitle(element.severity)}</h4>
+            
+            <h4>Enforcement: ${toTitle(element.enforcementMode)}</h4>
+            
+            <h4>Number of issues: ${element.children.length}</h4>
             `;
         } else if (element instanceof CloudrailIssueItemTreeItem) {
             return `
