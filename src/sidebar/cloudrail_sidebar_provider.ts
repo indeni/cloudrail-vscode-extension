@@ -11,6 +11,7 @@ export class CloudrailSidebarProvider implements vscode.TreeDataProvider<Cloudra
     private readonly extensionPath: string;
     private elements: CloudrailTreeItem[] = [];
     private _assessmentLink: string | undefined;
+    private treeViewIconMap = new Map<TreeViewIcon, icon>();
 
     constructor(context: vscode.ExtensionContext) {
         this.sidebarIssueInfoWebviewProvider = new CloudrailIssueInfoProvider();
@@ -31,6 +32,12 @@ export class CloudrailSidebarProvider implements vscode.TreeDataProvider<Cloudra
             const element = selectedElements.selection[0];
             this.sidebarIssueInfoWebviewProvider.showIssueInfo(element);
         });
+
+        const imagesPath = path.join(this.extensionPath, 'images');
+        this.treeViewIconMap.set(TreeViewIcon.None, {light: '', dark: ''});
+        this.treeViewIconMap.set(TreeViewIcon.Error, {light: path.join(imagesPath, 'run_error.svg'), dark: path.join(imagesPath, 'run_error.svg')});
+        this.treeViewIconMap.set(TreeViewIcon.Advise, {light: path.join(imagesPath, 'advise_mode_orange.svg'), dark: path.join(imagesPath, 'advise_mode_orange.svg')});
+        this.treeViewIconMap.set(TreeViewIcon.Mandate, {light: path.join(imagesPath, 'mandate_mode_red.svg'), dark: path.join(imagesPath, 'mandate_mode_red.svg')});
     }
     
     getTreeItem(element: CloudrailTreeItem): vscode.TreeItem | Thenable<vscode.TreeItem> {
@@ -49,8 +56,10 @@ export class CloudrailSidebarProvider implements vscode.TreeDataProvider<Cloudra
         }
     }
 
-    resetView(message: string) {
-        this.elements = [new vscode.TreeItem(message, vscode.TreeItemCollapsibleState.None)];
+    resetView(message: string, icon: TreeViewIcon = TreeViewIcon.None) {
+        const messageElement = new vscode.TreeItem(message, vscode.TreeItemCollapsibleState.None);
+        messageElement.iconPath = this.treeViewIconMap.get(icon);
+        this.elements = [messageElement];
         this._assessmentLink = '';
         this.sidebarIssueInfoWebviewProvider.resetView();
         this._onDidChangeTreeData.fire();
@@ -95,16 +104,22 @@ export class CloudrailSidebarProvider implements vscode.TreeDataProvider<Cloudra
         const ruleTreeItem = new CloudrailRuleTreeItem(ruleResult.rule_name, ruleResult.severity, ruleResult.enforcement_mode, children);
         const base = path.join(this.extensionPath, 'images');
         if (ruleResult.enforcement_mode === 'advise') {
-            ruleTreeItem.iconPath =  {
-                light: path.join(base, 'advise_mode_orange.svg'),
-                dark: path.join(base, 'advise_mode_orange.svg')
-            };
+            ruleTreeItem.iconPath =  this.treeViewIconMap.get(TreeViewIcon.Advise);
         } else {
-            ruleTreeItem.iconPath =  {
-                light: path.join(base, 'mandate_mode_red.svg'),
-                dark: path.join(base, 'mandate_mode_red.svg')
-            };
+            ruleTreeItem.iconPath =  this.treeViewIconMap.get(TreeViewIcon.Mandate);
         }
         return ruleTreeItem;
     } 
+}
+
+export enum TreeViewIcon {
+    None = 0,
+    Error = 1,
+    Mandate = 2, 
+    Advise = 3
+}
+
+type icon = {
+    light: string,
+    dark: string
 }
