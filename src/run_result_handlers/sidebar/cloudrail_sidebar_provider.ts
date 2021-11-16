@@ -94,7 +94,7 @@ export default class CloudrailSidebarProvider implements vscode.TreeDataProvider
     }
 
     private toIssueItemTreeItem(issueItem: IssueItem, basePath: string, ruleResult: RuleResult): CloudrailIssueItemTreeItem {
-        const entity = issueItem.violating_entity;
+        const entity = issueItem.violating_entity.iac_resource_metadata ? issueItem.violating_entity : issueItem.exposed_entity;
 
         return new CloudrailIssueItemTreeItem(
             entity.iac_entity_id,
