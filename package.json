@@ -55,6 +55,24 @@
 				"command": "cloudrail.update",
 				"title": "Update",
 				"category": "Cloudrail"
+			},
+			{
+				"command": "cloudrail.show_passed_rules",
+				"title": "Show Passed Rules",
+				"category": "Cloudrail",
+				"icon": {
+					"light": "images/light/show_passed_rules.svg",
+					"dark": "images/dark/show_passed_rules.svg"
+				}
+			},
+			{
+				"command": "cloudrail.hide_passed_rules",
+				"title": "Hide Passed Rules",
+				"category": "Cloudrail",
+				"icon": {
+					"light": "images/light/hide_passed_rules.svg",
+					"dark": "images/dark/hide_passed_rules.svg"
+				}
 			}
 		],
 		"views": {
@@ -94,12 +112,22 @@
 				{
 					"command": "cloudrail.scan",
 					"when": "view == cloudrail.issues",
-					"group": "navigation"
+					"group": "navigation@1"
 				},
 				{
 					"command": "cloudrail.settings",
 					"when": "view == cloudrail.issues",
-					"group": "navigation"
+					"group": "navigation@2"
+				},
+				{
+					"command": "cloudrail.show_passed_rules",
+					"when": "view == cloudrail.issues && !cloudrail.show_passed_rules",
+					"group": "navigation@3"
+				},
+				{
+					"command": "cloudrail.hide_passed_rules",
+					"when": "view == cloudrail.issues && cloudrail.show_passed_rules",
+					"group": "navigation@3"
 				},
 				{
 					"command": "cloudrail.scan",

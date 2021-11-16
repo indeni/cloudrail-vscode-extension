@@ -10,7 +10,7 @@ export class CloudrailRuleTreeItem extends CloudrailTreeItem {
                 public severity: string,
                 public enforcementMode: string,
                 children?: CloudrailIssueItemTreeItem[]) {
-        super(ruleName, vscode.TreeItemCollapsibleState.Collapsed);
+        super(ruleName, vscode.TreeItemCollapsibleState.None);
         this.setChildren(children);
     }
 
@@ -20,6 +20,11 @@ export class CloudrailRuleTreeItem extends CloudrailTreeItem {
         }
         
         this.description = this.children.length.toString();
+        this.collapsibleState = this.getCollapsibleState(children);
+    }
+
+    private getCollapsibleState(children?: CloudrailIssueItemTreeItem[]): vscode.TreeItemCollapsibleState {
+        return children && children.length > 0 ? vscode.TreeItemCollapsibleState.Collapsed : vscode.TreeItemCollapsibleState.None;
     }
 }
 

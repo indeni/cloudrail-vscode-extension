@@ -12,12 +12,17 @@ import CloudrailSidebarProvider from './run_result_handlers/sidebar/cloudrail_si
 
 export function activate(context: vscode.ExtensionContext) {
 	logger.debug('Cloudrail extension activated');
+	const showPassedRuleState: boolean | undefined = context.workspaceState.get(CloudrailSidebarProvider.showPassedRuleId, true);
+	vscode.commands.executeCommand('setContext', CloudrailSidebarProvider.showPassedRuleId, showPassedRuleState);
+
 	const diagnostics = vscode.languages.createDiagnosticCollection('cloudrail');
     context.subscriptions.push(diagnostics);
 
+	const sidebarProvider = new CloudrailSidebarProvider(context);
+
 	const runResultPublisher = new RunResultPublisher([
 		new RunResultDiagnosticSubscriber(diagnostics),
-		new CloudrailSidebarProvider(context)
+		sidebarProvider
 	]);
 	
 	CloudrailRunner.init(context.globalStorageUri.path);
@@ -42,7 +47,17 @@ export function activate(context: vscode.ExtensionContext) {
 
 		vscode.commands.registerCommand('cloudrail.update', () => {
 			updateCloudrail();
-		})
+		}),
+
+		vscode.commands.registerCommand('cloudrail.show_passed_rules', () => {
+			sidebarProvider.setShowPassedRulesMode(true);
+			sidebarProvider.refresh();
+		}),
+
+		vscode.commands.registerCommand('cloudrail.hide_passed_rules', () => {
+			sidebarProvider.setShowPassedRulesMode(false);
+			sidebarProvider.refresh();
+		}),
 	];
 
 	for (const command of commands) {
