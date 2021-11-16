@@ -20,9 +20,10 @@ describe('Scan unit tests', () => {
         const apiKey = 'MyApiKey';
         const policyId = '';
         const defaultRegion = '';
+        const configTerraformWorkingDirectory = '';
         stub(init, "initializeEnvironment").resolves(true);
 
-        stubConfiguration(apiKey, policyId, defaultRegion, false);
+        stubConfiguration(apiKey, policyId, defaultRegion, configTerraformWorkingDirectory, false);
 
         const terraformWorkingDirectory = '/Users/dev/tf-project';
 
@@ -59,11 +60,12 @@ describe('Scan unit tests', () => {
         
     }).timeout(5000);
 
-    function stubConfiguration(apiKey: string, cloudrailPolicyId: string, defaultRegion: string, withUnsetMandatoryFields: boolean) {
+    function stubConfiguration(apiKey: string, cloudrailPolicyId: string, defaultRegion: string, terraformWorkingDirectory: string, withUnsetMandatoryFields: boolean) {
         stub(configuration, "getConfig").resolves(
             {apiKey: apiKey, 
             cloudrailPolicyId: cloudrailPolicyId, 
-            awsDefaultRegion: defaultRegion});
+            awsDefaultRegion: defaultRegion,
+            terraformWorkingDirectory: terraformWorkingDirectory});
         const unsetMandatoryFields = withUnsetMandatoryFields ? ['ApiKey'] : [];
         stub(configuration, "getUnsetMandatoryFields").resolves(unsetMandatoryFields);
     }

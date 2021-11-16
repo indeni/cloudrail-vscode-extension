@@ -1,11 +1,12 @@
 import vscode from 'vscode';
 import simpleGit, { SimpleGitOptions } from 'simple-git';
 import { CloudrailRunner, CloudrailRunResponse, VcsInfo } from '../cloudrail_runner';
-import { getUnsetMandatoryFields, getConfig } from '../tools/configuration';
+import { getUnsetMandatoryFields, getConfig, CloudrailConfiguration } from '../tools/configuration';
 import { awaitInitialization, initializeEnvironment } from './init';
 import { logger, logPath } from '../tools/logger';
-import { getActiveTextEditorDirectoryInfo } from '../tools/path_utils';
+import { getActiveTextEditorDirectoryInfo, resolveHomeDir } from '../tools/path_utils';
 import RunResultPublisher from '../run_result_handlers/run_result_publisher';
+import path from 'path';
 
 
 let scanInProgress = false;
@@ -31,7 +32,7 @@ export default async function scan(runResultPublisher: RunResultPublisher) {
 
             let runResults: CloudrailRunResponse | undefined;
             const config = await getConfig();
-            const terraformWorkingDirectory = await getTerraformWorkingDirectory();
+            const terraformWorkingDirectory = await getTerraformWorkingDirectory(config);
             if (!terraformWorkingDirectory) {
                 return;
             }
@@ -53,6 +54,7 @@ export default async function scan(runResultPublisher: RunResultPublisher) {
 
             if (runResults === undefined) {
                 vscode.window.showErrorMessage('Cloudrail failed to start');
+                return;
             } else if (!runResults.success) {
                 vscode.window.showErrorMessage('Cloudrail Run failed:\n' + runResults.stdout);
                 return;
@@ -131,7 +133,19 @@ async function getVcsInfo(baseDir: string): Promise<VcsInfo | undefined> {
      return vcsInfo;
 }
 
-async function getTerraformWorkingDirectory(): Promise<string | undefined> {
+async function getTerraformWorkingDirectory(config: CloudrailConfiguration) {
+    const directoryFromConfig = getTerraformWorkingDirectoryFromConfig(config);
+    if (directoryFromConfig) {
+        return directoryFromConfig;
+    } else if (config.terraformWorkingDirectory) {
+        vscode.window.showErrorMessage('The directory specified in the TerraformWorkingDirectory settings could not be resolved. Either specify an absolute path or leave empty to scan on the active editor\'s directory.');
+        return;
+    }
+
+    return await getTerraformWorkingDirectoryFromActiveEditor();
+}
+
+async function getTerraformWorkingDirectoryFromActiveEditor(): Promise<string | undefined> {
     const instruction = 'Open any file in the terraform module to be scanned, then run Cloudrail Scan';
     const activeTextEditorDirectoryInfo = await getActiveTextEditorDirectoryInfo();
     if (!activeTextEditorDirectoryInfo.path) {
@@ -156,4 +170,17 @@ async function getTerraformWorkingDirectory(): Promise<string | undefined> {
     }
 
     return activeTextEditorDirectoryInfo.path;
+}
+
+function getTerraformWorkingDirectoryFromConfig(config: CloudrailConfiguration): string | undefined {
+    if (!config.terraformWorkingDirectory) {
+        return;
+    }
+
+    const dir = resolveHomeDir(config.terraformWorkingDirectory);
+    if (path.isAbsolute(dir!)) {
+        return dir;
+    }
+
+    return;
 }

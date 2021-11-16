@@ -55,3 +55,9 @@ export class CloudrailIssueItemTreeItem extends CloudrailTreeItem {
         };
     }
 }
+
+export class NotificationTreeItem extends CloudrailTreeItem {
+    constructor(public message: string) {
+        super(message, vscode.TreeItemCollapsibleState.None);
+    }
+}
