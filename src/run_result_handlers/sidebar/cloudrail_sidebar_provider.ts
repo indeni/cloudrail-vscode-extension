@@ -5,7 +5,7 @@ import { IssueItem, RuleResult } from '../../cloudrail_run_result_model';
 import { RunResultsSubscriber } from '../run_result_subscriber';
 import { EvidenceFormat, parseEvidence, parseHtmlLinks } from '../../tools/parse_utils';
 import { CloudrailIssueInfoProvider } from './cloudrail_issue_info_provider';
-import { CloudrailIssueItemTreeItem, CloudrailRuleTreeItem, CloudrailTreeItem } from './cloudrail_tree_item';
+import { CloudrailIssueItemTreeItem, NotificationTreeItem, CloudrailRuleTreeItem, CloudrailTreeItem } from './cloudrail_tree_item';
 
 export default class CloudrailSidebarProvider implements vscode.TreeDataProvider<CloudrailTreeItem>, RunResultsSubscriber {
     private _onDidChangeTreeData: vscode.EventEmitter<CloudrailTreeItem | undefined | null | void> = new vscode.EventEmitter<CloudrailTreeItem | undefined | null | void>();
@@ -60,7 +60,7 @@ export default class CloudrailSidebarProvider implements vscode.TreeDataProvider
     }
 
     resetView(message: string, icon: TreeViewIcon = TreeViewIcon.none) {
-        const messageElement = new vscode.TreeItem(message, vscode.TreeItemCollapsibleState.None);
+        const messageElement = new NotificationTreeItem(message);
         messageElement.iconPath = this.treeViewIconMap.get(icon);
         this.elements = [messageElement];
         this._assessmentLink = '';

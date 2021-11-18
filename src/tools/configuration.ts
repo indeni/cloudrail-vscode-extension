@@ -7,15 +7,16 @@ export interface CloudrailConfiguration {
     apiKey: string;
     cloudrailPolicyId: string;
     awsDefaultRegion: string;
+    terraformWorkingDirectory: string;
 }
 
 export async function getConfig(): Promise<CloudrailConfiguration> {
     const config = vscode.workspace.getConfiguration('cloudrail');
-
     return {
         apiKey: await getApiKey(config),
         cloudrailPolicyId: config.get('CloudrailPolicyId')!,
-        awsDefaultRegion: config.get('AwsDefaultRegion')!
+        awsDefaultRegion: config.get('AwsDefaultRegion')!,
+        terraformWorkingDirectory: config.get('TerraformWorkingDirectory')!
     };
 }
 

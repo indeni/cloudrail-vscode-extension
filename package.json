@@ -140,6 +140,10 @@
 				"cloudrail.AwsDefaultRegion": {
 					"type": "string",
 					"description": "[OPTIONAL] Cloudrail will use this region as the default region if not explicitly provided, or not set in AWS_DEFAULT_REGION/AWS_REGION environment variables"
+				},
+				"cloudrail.TerraformWorkingDirectory": {
+					"type": "string",
+					"description": "[OPTIONAL] Cloudrail will run against this folder if specified. If left blank, Cloudrail will run against the directory of the active editor"
 				}
 			}
 		}

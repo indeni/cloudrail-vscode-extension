@@ -1,6 +1,6 @@
 import { CancellationToken, Webview, WebviewView, WebviewViewProvider, WebviewViewResolveContext } from "vscode";
 import { toTitle } from "../../tools/parse_utils";
-import { CloudrailIssueItemTreeItem, CloudrailRuleTreeItem, CloudrailTreeItem } from "./cloudrail_tree_item";
+import { CloudrailIssueItemTreeItem, NotificationTreeItem, CloudrailRuleTreeItem, CloudrailTreeItem } from "./cloudrail_tree_item";
 
 
 export class CloudrailIssueInfoProvider implements WebviewViewProvider {
@@ -16,7 +16,10 @@ export class CloudrailIssueInfoProvider implements WebviewViewProvider {
             return;
         }
 
-        this.view.html = this.toHtml(element);
+        const elementHtml = this.toHtml(element);
+        if (elementHtml) {
+            this.view.html = elementHtml;
+        }
     }
 
     resetView(): void {
@@ -25,7 +28,7 @@ export class CloudrailIssueInfoProvider implements WebviewViewProvider {
         }
     }
 
-    private toHtml(element: CloudrailTreeItem): string {
+    private toHtml(element: CloudrailTreeItem): string | undefined{
         if (element instanceof CloudrailRuleTreeItem) {
             return `
             <h2>${element.ruleName}</h2>
@@ -47,7 +50,7 @@ export class CloudrailIssueInfoProvider implements WebviewViewProvider {
             <h3>Assessment Link</h3>
             <a href="${element.assessmentLink}">Jump to the assessment page
             `;
-        } else {
+        } else if (!(element instanceof NotificationTreeItem)) {
             throw new Error(`Not implemented for type ${typeof element}`);
         }
     }
