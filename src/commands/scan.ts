@@ -4,9 +4,8 @@ import { CloudrailRunner, CloudrailRunResponse, VcsInfo } from '../cloudrail_run
 import { getUnsetMandatoryFields, getConfig, CloudrailConfiguration } from '../tools/configuration';
 import { awaitInitialization, initializeEnvironment } from './init';
 import { logger, logPath } from '../tools/logger';
-import { getActiveTextEditorDirectoryInfo, resolveHomeDir } from '../tools/path_utils';
+import { getActiveTextEditorDirectoryInfo, resolvePath } from '../tools/path_utils';
 import RunResultPublisher from '../run_result_handlers/run_result_publisher';
-import path from 'path';
 
 
 let scanInProgress = false;
@@ -46,7 +45,7 @@ export default async function scan(runResultPublisher: RunResultPublisher) {
             
             const vcsInfo = await getVcsInfo(terraformWorkingDirectory);
             const stdoutCallback = (data: string) => {
-                progress.report({ increment: 10, message: data});
+                progress.report({ increment: 10, message: data });
             };
 
             await awaitInitialization();
@@ -133,13 +132,14 @@ async function getVcsInfo(baseDir: string): Promise<VcsInfo | undefined> {
      return vcsInfo;
 }
 
-async function getTerraformWorkingDirectory(config: CloudrailConfiguration) {
-    const directoryFromConfig = getTerraformWorkingDirectoryFromConfig(config);
-    if (directoryFromConfig) {
-        return directoryFromConfig;
-    } else if (config.terraformWorkingDirectory) {
-        vscode.window.showErrorMessage('The directory specified in the TerraformWorkingDirectory settings could not be resolved. Either specify an absolute path or leave empty to scan on the active editor\'s directory.');
-        return;
+async function getTerraformWorkingDirectory(config: CloudrailConfiguration): Promise<string | undefined> {
+    if (config.terraformWorkingDirectory) {
+        const resolvedPath = resolvePath(config.terraformWorkingDirectory);
+        if (!resolvedPath) {
+            vscode.window.showErrorMessage('The directory specified in the TerraformWorkingDirectory settings could not be resolved. Either specify an absolute path or leave empty to scan on the active editor\'s directory.');    
+            return;
+        }
+        return resolvedPath;
     }
 
     return await getTerraformWorkingDirectoryFromActiveEditor();
@@ -170,17 +170,4 @@ async function getTerraformWorkingDirectoryFromActiveEditor(): Promise<string | 
     }
 
     return activeTextEditorDirectoryInfo.path;
-}
-
-function getTerraformWorkingDirectoryFromConfig(config: CloudrailConfiguration): string | undefined {
-    if (!config.terraformWorkingDirectory) {
-        return;
-    }
-
-    const dir = resolveHomeDir(config.terraformWorkingDirectory);
-    if (path.isAbsolute(dir!)) {
-        return dir;
-    }
-
-    return;
 }
