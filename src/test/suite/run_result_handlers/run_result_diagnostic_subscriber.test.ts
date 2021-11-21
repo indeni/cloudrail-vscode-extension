@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 import vscode, { DiagnosticSeverity } from 'vscode';
 import { match, restore, SinonStubbedInstance, stub } from 'sinon';
 import { describe, beforeEach, it } from 'mocha';

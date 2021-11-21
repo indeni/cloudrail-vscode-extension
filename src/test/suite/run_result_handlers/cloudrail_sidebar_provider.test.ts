@@ -45,8 +45,8 @@ describe('CloudrailSidebarProvider tests', async () => {
         sidebarProvider.setShowPassedRulesMode(true);
         elements = getSidebarRuleTreeItems();
         assert.equal(elements.length, 2);
-        assert.isTrue(elements.some( (value) => { return (value as CloudrailRuleTreeItem).children.length === 0} )); // Passed rule
-        assert.isTrue(elements.some( (value) => { return (value as CloudrailRuleTreeItem).children.length === 1} )); // Failed rule
+        assert.isTrue(elements.some( (value) => { return (value as CloudrailRuleTreeItem).children.length === 0;} )); // Passed rule
+        assert.isTrue(elements.some( (value) => { return (value as CloudrailRuleTreeItem).children.length === 1;} )); // Failed rule
 
         // When passed rules are hidden
         sidebarProvider.setShowPassedRulesMode(false);
@@ -68,12 +68,12 @@ describe('CloudrailSidebarProvider tests', async () => {
 
     it('assessmentStart', async () => {
         await sidebarProvider.assessmentStart();
-        assertResetView('Scanning, please wait...')
+        assertResetView('Scanning, please wait...');
     });
 
     it('assessmentFailed', async () => {
         await sidebarProvider.assessmentFailed();
-        assertResetView('Last scan failed', TreeViewIcon.error)
+        assertResetView('Last scan failed', TreeViewIcon.error);
     });
 
     it('updateRunResults - sorted by failed > enforcement > severity', () => {
@@ -144,7 +144,7 @@ describe('CloudrailSidebarProvider tests', async () => {
             sidebarProvider.updateRunResults({assessmentLink: 'assessmentLink'} as CloudrailRunResponse, rules, '/workingDir');
             const children = getSidebarRuleTreeItems();
             assert.equal(children.length, 2);
-            assert.equal(children[0].ruleName, topRule.rule_name)
+            assert.equal(children[0].ruleName, topRule.rule_name);
         });
     }
 
@@ -181,6 +181,6 @@ describe('CloudrailSidebarProvider tests', async () => {
                     iac_entity_id: 'violating_entity_id'
                 }
             }
-        ]
+        ];
     }
 });
