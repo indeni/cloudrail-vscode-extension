@@ -1,11 +1,11 @@
 import vscode from 'vscode';
-import simpleGit, { SimpleGitOptions } from 'simple-git';
-import { CloudrailRunner, CloudrailRunResponse, VcsInfo } from '../cloudrail_runner';
+import { CloudrailRunner, CloudrailRunResponse } from '../cloudrail_runner';
 import { getUnsetMandatoryFields, getConfig, CloudrailConfiguration } from '../tools/configuration';
 import { awaitInitialization, initializeEnvironment } from './init';
-import { logger, logPath } from '../tools/logger';
+import { logger } from '../tools/logger';
 import { getActiveTextEditorDirectoryInfo, resolvePath } from '../tools/path_utils';
 import RunResultPublisher from '../run_result_handlers/run_result_publisher';
+import { getVcsInfo } from '../tools/vcs_utils';
 
 
 let scanInProgress = false;
@@ -50,11 +50,8 @@ export default async function scan(runResultPublisher: RunResultPublisher) {
 
             await awaitInitialization();
             runResults = await CloudrailRunner.cloudrailRun(terraformWorkingDirectory, config.apiKey, config.cloudrailPolicyId, config.awsDefaultRegion, vcsInfo, stdoutCallback);
-
-            if (runResults === undefined) {
-                vscode.window.showErrorMessage('Cloudrail failed to start');
-                return;
-            } else if (!runResults.success) {
+            
+            if (!runResults.success) {
                 vscode.window.showErrorMessage('Cloudrail Run failed:\n' + runResults.stdout);
                 return;
             }
@@ -64,72 +61,22 @@ export default async function scan(runResultPublisher: RunResultPublisher) {
             isSuccessfulScan = true;
         });
     } catch(e) {
-        logger.error(`Failed to perform scan. reason: ${e}`);
-        if (!await CloudrailRunner.getCloudrailVersion()) {
-            vscode.window.showInformationMessage('Cloudrail is not installed, reinitializing and starting again...');
-            if (await initializeEnvironment(true)) {
-                scanInProgress = false;
-                scan(runResultPublisher);
-            }
-        } else {
-            vscode.window.showErrorMessage(`An unknown error has occured while performing the scan. Check log for more information: ${logPath}`);
+        logger.exception(e, 'Failed to perform scan');
+        try {
+            if (!await CloudrailRunner.getCloudrailVersion()) {
+                initializeEnvironment(false);
+            } 
+        } catch {
+            initializeEnvironment(false);
         }
+        
+        vscode.window.showErrorMessage('An unknown error has occured while performing the scan. Please try again.');
     } finally {
         if (!isSuccessfulScan) {
             runResultPublisher.assessmentFailed();
         }
         scanInProgress = false;
     }
-}
-
-async function getVcsInfo(baseDir: string): Promise<VcsInfo | undefined> {
-    let vcsInfo: VcsInfo | undefined = undefined;
-    const options: Partial<SimpleGitOptions> = {
-		baseDir: baseDir,
-		binary: 'git',
-	 };
-	 
-     try {
-        const git = simpleGit(options);
-        if (await git.checkIsRepo()) {
-            const branch = (await git.branch()).current;
-            const commit = (await git.show()).replace('\n', ' ').split(' ')[1];
-            const topLevel = await git.revparse(['--show-toplevel']);
-            let repo = (await git.remote(['get-url', 'origin']) as string).replace('\n', '');
-            let urlTemplate = baseDir.replace(topLevel + '/', '');
-            repo = repo.replace('https://', '').replace('http://', '');
-            repo = repo.slice(0, -4); // Remove .git suffix
-            
-            let buildLink;
-
-            if (repo.includes('@')) {
-                repo = repo
-                        .replace(':', '/')
-                        .slice(repo.indexOf('@') + 1); // Remove everything up to (and includes) '@'
-            }
- 
-            if (repo.startsWith('bitbucket')) {
-                buildLink = 'https://' + repo + '/src/';
-                if (branch.includes('/')) { // For branches like bugfix/branchname or feature/branchname
-                    buildLink += commit;
-                } else {
-                    buildLink += branch;
-                }
-                urlTemplate = buildLink + `/${urlTemplate}` + '/{iac_file_path}#lines-{iac_file_line_no}';
-            } else if (repo.startsWith('github')) { 
-                buildLink = 'https://' + repo + '/tree/' + branch;
-                urlTemplate = buildLink + `/${urlTemplate}` + '/{iac_file_path}#L{iac_file_line_no}';
-            } else {
-                throw new Error('Unsupported vcs for repo: ' + repo);
-            }
-
-             vcsInfo = { repo: repo, branch: branch, commit: commit, buildLink: buildLink, urlTemplate: urlTemplate };
-        }
-     } catch(e) {
-        logger.error('An error occured when trying to get vcs info: ' + e);
-     }
-
-     return vcsInfo;
 }
 
 async function getTerraformWorkingDirectory(config: CloudrailConfiguration): Promise<string | undefined> {
