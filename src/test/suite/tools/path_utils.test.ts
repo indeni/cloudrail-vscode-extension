@@ -1,4 +1,5 @@
 import vscode from 'vscode';
+import os from 'os';
 import { stub, restore } from 'sinon';
 import { describe, beforeEach, it } from 'mocha';
 import { assert, expect } from 'chai';
@@ -74,5 +75,51 @@ describe('path_utils tests', () => {
         assert.isUndefined(activeTextEditorDirectoryInfo.path);
         assert.isUndefined(activeTextEditorDirectoryInfo.dirContent);
         assert.isUndefined(activeTextEditorDirectoryInfo.isInWorkspace);
+    });
+
+    it('resolvePath, absolute path', () => {
+        // Arrange
+        const filepath = '/absolute/path';
+
+        // Act
+        const actualFilePath = path_utils.resolvePath(filepath);
+
+        // Assert
+        assert.equal(actualFilePath, filepath);
+    });
+
+    it('resolvePath, relative path', () => {
+        // Arrange
+        const filepath = '../relative/path';
+
+        // Act
+        const actualFilePath = path_utils.resolvePath(filepath);
+
+        // Assert
+        assert.isUndefined(actualFilePath);
+    });
+
+    it('resolvePath, undefined path', () => {
+        // Arrange
+        const filepath = undefined;
+
+        // Act
+        const actualFilePath = path_utils.resolvePath(filepath);
+
+        // Assert
+        assert.equal(actualFilePath, filepath);
+    });
+
+    it('resolvePath, path with home dir', () => {
+        // Arrange
+        const filepath = '~/dev';
+        const homeDir = '/Users/user';
+        stub(os, 'homedir').returns(homeDir);
+
+        // Act
+        const actualFilePath = path_utils.resolvePath(filepath);
+
+        // Assert
+        assert.equal(actualFilePath, `${homeDir}/dev`);
     });
 });

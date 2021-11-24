@@ -27,6 +27,7 @@ describe('Configuration unit tests', () => {
                 if (settingId === 'ApiKey')            { return 'MyApiKey'; }
                 if (settingId === 'CloudrailPolicyId') { return 'MyCloudrailPolicyId'; }
                 if (settingId === 'AwsDefaultRegion')  { return 'MyAwsDefaultRegion'; }
+                if (settingId === 'TerraformWorkingDirectory')  { return 'MyTerraformWorkingDirectory'; }
             },
           } as vscode.WorkspaceConfiguration);
 
@@ -37,6 +38,7 @@ describe('Configuration unit tests', () => {
         assert.equal(config.apiKey, 'MyApiKey');
         assert.equal(config.cloudrailPolicyId, 'MyCloudrailPolicyId');
         assert.equal(config.awsDefaultRegion, 'MyAwsDefaultRegion');
+        assert.equal(config.terraformWorkingDirectory, 'MyTerraformWorkingDirectory');
     });
 
     it('Get ApiKey from CloudrailRunner', async () => {

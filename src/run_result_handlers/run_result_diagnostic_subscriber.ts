@@ -48,7 +48,7 @@ export default class RunResultDiagnosticSubscriber implements RunResultsSubscrib
             message: this.toMessage(issueItem.evidence, failedRule.iac_remediation_steps),
             range: new vscode.Range(startPosition, endPosition),
             severity: severity,
-            source: 'Cloudrail ',
+            source: 'Cloudrail',
             code: {value: 'Assessment Page', target: vscode.Uri.parse(assessmentLink)}
         };
     }

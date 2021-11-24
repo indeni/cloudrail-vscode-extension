@@ -7,37 +7,25 @@ import { EvidenceFormat, parseEvidence, parseHtmlLinks } from '../../tools/parse
 import { CloudrailIssueInfoProvider } from './cloudrail_issue_info_provider';
 import { CloudrailIssueItemTreeItem, NotificationTreeItem, CloudrailRuleTreeItem, CloudrailTreeItem } from './cloudrail_tree_item';
 
+
 export default class CloudrailSidebarProvider implements vscode.TreeDataProvider<CloudrailTreeItem>, RunResultsSubscriber {
     public static readonly showPassedRuleId = 'cloudrail.show_passed_rules';
     private _onDidChangeTreeData: vscode.EventEmitter<CloudrailTreeItem | undefined | null | void> = new vscode.EventEmitter<CloudrailTreeItem | undefined | null | void>();
     readonly onDidChangeTreeData: vscode.Event<CloudrailTreeItem | undefined | null | void> = this._onDidChangeTreeData.event;
     private readonly sidebarIssueInfoWebviewProvider: CloudrailIssueInfoProvider;
     private readonly extensionPath: string;
+    private readonly webView: vscode.Disposable;
     private elements: CloudrailTreeItem[] = [];
     private visibleElements: CloudrailTreeItem[] = [];
-    private _assessmentLink: string | undefined;
+    private assessmentLink: string | undefined;
     private treeViewIconMap = new Map<TreeViewIcon, Icon>();
     private showPassedRules: boolean = true;
 
     constructor(private context: vscode.ExtensionContext) {
+        this.createTreeView();
         this.sidebarIssueInfoWebviewProvider = new CloudrailIssueInfoProvider();
-        const sidebarIssueTree = vscode.window.createTreeView("cloudrail.issues", {
-            treeDataProvider: this,
-            canSelectMany: false
-        });
-        
+        this.webView = this.createWebView(context);
         this.extensionPath = context.extensionPath;
-        const sidebarIssueWebview = vscode.window.registerWebviewViewProvider("cloudrail.issue_info", this.sidebarIssueInfoWebviewProvider);
-        context.subscriptions.push(sidebarIssueWebview);
-    
-        sidebarIssueTree.onDidChangeSelection( async (selectedElements) => {
-            if (selectedElements.selection.length !== 1) {
-                return;
-            }
-    
-            const element = selectedElements.selection[0];
-            this.sidebarIssueInfoWebviewProvider.showIssueInfo(element);
-        });
 
         const imagesPath = path.join(this.extensionPath, 'images');
         this.treeViewIconMap.set(TreeViewIcon.none, {light: '', dark: ''});
@@ -67,9 +55,9 @@ export default class CloudrailSidebarProvider implements vscode.TreeDataProvider
 
     resetView(message: string, icon: TreeViewIcon = TreeViewIcon.none) {
         const messageElement = new NotificationTreeItem(message);
-        messageElement.iconPath = this.treeViewIconMap.get(icon);
+        messageElement.iconPath = this.resolveIcon(icon);
         this.elements = this.visibleElements = [messageElement];
-        this._assessmentLink = '';
+        this.assessmentLink = '';
         this.sidebarIssueInfoWebviewProvider.resetView();
         this._onDidChangeTreeData.fire();
     }
@@ -84,7 +72,7 @@ export default class CloudrailSidebarProvider implements vscode.TreeDataProvider
 
     async updateRunResults(runResults: CloudrailRunResponse, ruleResults: RuleResult[], terraformWorkingDirectory: string): Promise<void> {
         this.elements = [];
-        this._assessmentLink = runResults.assessmentLink;
+        this.assessmentLink = runResults.assessmentLink;
 
         for (const failedRuleResult of ruleResults) {
             const issueItemTreeItems = [];
@@ -102,7 +90,18 @@ export default class CloudrailSidebarProvider implements vscode.TreeDataProvider
         this.refresh();
     }
 
-    refresh(): void {
+    setShowPassedRulesMode(showPassedRules: boolean): void {
+        vscode.commands.executeCommand('setContext', CloudrailSidebarProvider.showPassedRuleId, showPassedRules);
+        this.context.workspaceState.update(CloudrailSidebarProvider.showPassedRuleId, showPassedRules);
+        this.showPassedRules = showPassedRules;
+        this.refresh();
+    }
+
+    resolveIcon(icon: TreeViewIcon): Icon | undefined {
+        return this.treeViewIconMap.get(icon);
+    }
+
+    private refresh(): void {
         if (this.elements.length > 0 && this.elements[0] instanceof NotificationTreeItem) {
             return;
         }
@@ -115,12 +114,6 @@ export default class CloudrailSidebarProvider implements vscode.TreeDataProvider
         }
         
         this._onDidChangeTreeData.fire();
-    }
-
-    setShowPassedRulesMode(showPassedRules: boolean): void {
-        vscode.commands.executeCommand('setContext', CloudrailSidebarProvider.showPassedRuleId, showPassedRules);
-        this.context.workspaceState.update(CloudrailSidebarProvider.showPassedRuleId, showPassedRules);
-        this.showPassedRules = showPassedRules;
     }
 
     private getPriorityScore(ruleTreeItem: CloudrailRuleTreeItem): number {
@@ -146,22 +139,50 @@ export default class CloudrailSidebarProvider implements vscode.TreeDataProvider
             ruleResult.rule_name,
             parseEvidence(issueItem.evidence, EvidenceFormat.html),
             parseHtmlLinks(ruleResult.iac_remediation_steps),
-            this._assessmentLink!,
+            this.assessmentLink!,
         );
     }
 
     private toRuleTreeItem(ruleResult: RuleResult, children: CloudrailIssueItemTreeItem[]): CloudrailRuleTreeItem {
         const ruleTreeItem = new CloudrailRuleTreeItem(ruleResult.rule_name, ruleResult.severity, ruleResult.enforcement_mode, children);
-        const base = path.join(this.extensionPath, 'images');
+
         if (ruleResult.issue_items.length === 0) {
-            ruleTreeItem.iconPath = this.treeViewIconMap.get(TreeViewIcon.passed);
+            ruleTreeItem.iconPath = this.resolveIcon(TreeViewIcon.passed);
         }
         else if (ruleResult.enforcement_mode === 'advise') {
-            ruleTreeItem.iconPath =  this.treeViewIconMap.get(TreeViewIcon.advise);
+            ruleTreeItem.iconPath =  this.resolveIcon(TreeViewIcon.advise);
         } else {
-            ruleTreeItem.iconPath =  this.treeViewIconMap.get(TreeViewIcon.mandate);
+            ruleTreeItem.iconPath =  this.resolveIcon(TreeViewIcon.mandate);
         }
         return ruleTreeItem;
+    }
+
+    private createTreeView() {
+        const treeView = vscode.window.createTreeView("cloudrail.issues", {
+            treeDataProvider: this,
+            canSelectMany: false
+        });
+        treeView.onDidChangeSelection( async (selectedElements) => {
+            if (selectedElements.selection.length !== 1) {
+                return;
+            }
+    
+            const element = selectedElements.selection[0];
+            this.sidebarIssueInfoWebviewProvider.showIssueInfo(element);
+        });
+
+        return treeView;
+    }
+
+    private createWebView(context: vscode.ExtensionContext) {
+        if (this.webView) {
+            this.webView.dispose();
+        }
+
+        const webView = vscode.window.registerWebviewViewProvider("cloudrail.issue_info", this.sidebarIssueInfoWebviewProvider);
+        context.subscriptions.push(webView);
+
+        return webView;
     }
 }
 

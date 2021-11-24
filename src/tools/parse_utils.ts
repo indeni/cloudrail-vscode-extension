@@ -44,9 +44,12 @@ export function parseEvidence(evidence: string, format: EvidenceFormat): string 
 }
 
 export function toTitle(str: string): string {
-    if (str.length === 0) {
-        return str;
-    }
+    let parsedString = str.toLowerCase();
+    ['\n', '\t', '\r', ' '].forEach( (delimiter: string) => {
+        parsedString = parsedString.split(delimiter).map( (word) => {
+            return word.charAt(0).toUpperCase() + word.slice(1);
+        }).join(delimiter);
+    });
 
-    return str[0].toUpperCase() + str.slice(1);
+    return parsedString;
 }

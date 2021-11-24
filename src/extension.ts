@@ -51,13 +51,15 @@ export function activate(context: vscode.ExtensionContext) {
 
 		vscode.commands.registerCommand('cloudrail.show_passed_rules', () => {
 			sidebarProvider.setShowPassedRulesMode(true);
-			sidebarProvider.refresh();
 		}),
 
 		vscode.commands.registerCommand('cloudrail.hide_passed_rules', () => {
 			sidebarProvider.setShowPassedRulesMode(false);
-			sidebarProvider.refresh();
 		}),
+
+		vscode.commands.registerCommand('cloudrail.tests.getSidebarProvider', () => {
+			return sidebarProvider;
+		})
 	];
 
 	for (const command of commands) {
