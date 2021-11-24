@@ -23,10 +23,10 @@ jobs:
         with:
           run: npm run test
       - name: Create coverage report
-        run: npm run ts-coverage
+        run: npm run ts-coverage -t 100
       - name: Upload coverage report
         uses: actions/upload-artifact@v2
         with:
           name: Coverage report
-          path: coverage-ts/index.html
+          path: coverage-ts
   
