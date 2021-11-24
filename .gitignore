@@ -5,3 +5,4 @@ node_modules/.bin/js-yaml
 out
 *.vsix
 .idea
+coverage-ts

@@ -186,7 +186,8 @@
 		"pretest": "npm run compile-tests && npm run compile && npm run lint",
 		"lint": "eslint src --ext ts",
 		"test": "tsc -p . --outDir out && node ./out/test/runTest.js",
-		"test-no-compile": "node ./out/test/runTest.js"
+		"test-no-compile": "node ./out/test/runTest.js",
+		"ts-coverage": "typescript-coverage-report"
 	},
 	"devDependencies": {
 		"@types/chai": "^4.2.22",
@@ -208,6 +209,7 @@
 		"ts-mocha": "^8.0.0",
 		"ts-node": "^10.4.0",
 		"typescript": "^4.4.3",
+		"typescript-coverage-report": "^0.6.1",
 		"webpack": "^5.52.1",
 		"webpack-cli": "^4.8.0"
 	},
