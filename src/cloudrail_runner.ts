@@ -1,5 +1,6 @@
 import path from 'path';
 import fs from 'fs';
+import semver from 'semver';
 import { exec } from 'child_process';
 import util from 'util';
 import { Versioning } from './tools/versioning';
@@ -15,7 +16,6 @@ export interface CloudrailRunResponse {
     assessmentLink: string;
 }
 
-
 export interface VcsInfo {
     repo: string;
     branch: string;
@@ -27,22 +27,25 @@ export interface VcsInfo {
 export class CloudrailRunner {
     private static venvPath: string;
     private static sourceCmd: string;
+    private static readonly minimumCliVersion: string = '0.0.0'; // TODO: Should be the next cloudrail version
 
     static init(venvBasePath: string): void {
         this.venvPath = `${path.join(venvBasePath, 'cloudrail_venv')}`;
         this.sourceCmd = `source "${this.venvPath}/bin/activate"`;
     }
 
-    static async createVenv(): Promise<void> {
+    static async createVenv(): Promise<boolean> {
         logger.info('Checking if venv exists');
         if (await this.venvExists() && await this.isPipInstalledInVenv()) {
             logger.info('Venv exists');
+            return true;
         } else {
             logger.info('Venv does not exist, creating..');
             await util.promisify(fs.mkdir)(this.venvPath, { recursive: true });
             logger.info('Creating venv dir');
             await this.asyncExec(`python3 -m venv "${this.venvPath}"`);
             logger.info('Created venv');
+            return false;
         }
     }
 
@@ -53,6 +56,11 @@ export class CloudrailRunner {
                 logger.error(`Unexpected error when checking cloudrail version: ${versionOutput.stderr}`);
                 return Promise.reject(versionOutput.stderr);
             };
+
+            let cloudrailInstallPath = await this.runVenvCommand('which cloudrail');
+            if (!cloudrailInstallPath.stdout.startsWith(this.venvPath)) {
+                return;
+            }
 
             return versionOutput.stdout;
         } catch(e) {
@@ -106,7 +114,8 @@ export class CloudrailRunner {
             `--directory ${workingDir}`,
             `--api-key ${apiKey}`,
             `--no-cloud-account`,
-            '--execution-source-identifier VSCode'
+            '--execution-source-identifier VSCode',
+            `--client vscode:${Versioning.getExtensionVersion()}`
         ];
 
         if (cloudrailPolicyId) {
@@ -167,11 +176,6 @@ export class CloudrailRunner {
         }
     }
 
-    private static asyncExec(command: string): Promise<{stdout: string, stderr: string}> {
-        logger.info(`asyncExec command: ${command}`);
-        return util.promisify(exec)(command);
-    }
-
     static async isPythonInstalled(): Promise<boolean> {
         try {
             const version = (await this.asyncExec('python3 --version')).stdout.split(' ')[1];
@@ -181,6 +185,15 @@ export class CloudrailRunner {
             logger.info('Python is not installed');
             return false;
         }
+    }
+
+    static isCloudrailVersionSatisfactory(version: string): boolean {
+        return semver.gte(version, this.minimumCliVersion);
+    }
+
+    private static asyncExec(command: string): Promise<{stdout: string, stderr: string}> {
+        logger.info(`asyncExec command: ${command}`);
+        return util.promisify(exec)(command);
     }
 
     private static async venvExists(): Promise<boolean> {
@@ -202,11 +215,15 @@ export class CloudrailRunner {
     }
 
     private static async runVenvPip(command: string): Promise<{stdout: string, stderr: string}> {
-        return await this.asyncExec(`${this.sourceCmd} && python3 -m pip ${command}`);
+        return await this.runVenvCommand(`python3 -m pip  ${command}`);
     }
 
     private static async runCloudrail(command: string): Promise<{stdout: string, stderr: string}> {
-        return await this.asyncExec(`${this.sourceCmd} && cloudrail ${command}`);
+        return await this.runVenvCommand(`cloudrail ${command}`);
+    }
+
+    private static async runVenvCommand(command: string): Promise<{stdout: string, stderr: string}> {
+        return await this.asyncExec(`${this.sourceCmd} && ${command}`);
     }
 
     private static logRunCommand(command: string): void {

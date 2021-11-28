@@ -29,14 +29,33 @@ describe('Command: Init unit tests', () => {
         showErrorMessageExpectation.verify();
     });
 
-    it('Cloudrail already installed, Initialization succeeds', async () => {
+    it('Cloudrail already installed with satisfactory version, Initialization succeeds', async () => {
         // Arrange
         stub(CloudrailRunner, "createVenv").resolves();
         stub(CloudrailRunner, "isPythonInstalled").resolves(true);
         stub(CloudrailRunner, "getCloudrailVersion").resolves('1.2.3');
         stub(CloudrailRunner, "setCloudrailVersion").resolves();
+        stub(CloudrailRunner, "isCloudrailVersionSatisfactory").returns(true);
 
         const installCloudrailExpectation = mock(CloudrailRunner).expects("installCloudrail").never();
+
+        // Act
+        const initialized = await initializeEnvironment(true);
+
+        // Assert
+        assert.isTrue(initialized);
+        installCloudrailExpectation.verify();
+    }).timeout(10000);
+
+    it('Cloudrail already installed with non-satisfactory version, Initialization succeeds', async () => {
+        // Arrange
+        stub(CloudrailRunner, "createVenv").resolves();
+        stub(CloudrailRunner, "isPythonInstalled").resolves(true);
+        stub(CloudrailRunner, "getCloudrailVersion").resolves('1.2.3');
+        stub(CloudrailRunner, "setCloudrailVersion").resolves();
+        stub(CloudrailRunner, "isCloudrailVersionSatisfactory").returns(false);
+
+        const installCloudrailExpectation = mock(CloudrailRunner).expects("installCloudrail").once();
 
         // Act
         const initialized = await initializeEnvironment(true);
