@@ -106,7 +106,6 @@ export class CloudrailRunner {
         
         let runArgs = [
             '--auto-approve',
-            //'--client vscode',
             '--output-format json',
             '--notty',
             '--upload-log',
