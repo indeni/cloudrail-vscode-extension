@@ -1,7 +1,6 @@
 import vscode from 'vscode';
 import os from 'os';
 import { stub, restore } from 'sinon';
-import { describe, beforeEach, it } from 'mocha';
 import { assert, expect } from 'chai';
 import fs = require('fs');
 import path = require('path');

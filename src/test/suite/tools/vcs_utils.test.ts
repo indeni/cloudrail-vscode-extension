@@ -1,5 +1,4 @@
 import { restore } from 'sinon';
-import { describe, beforeEach, it } from 'mocha';
 import { assert } from 'chai';
 import { generateVcsInfo } from '../../../tools/vcs_utils';
 import { URL } from 'url';

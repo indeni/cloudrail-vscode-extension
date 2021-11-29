@@ -1,5 +1,4 @@
 import { stub, restore, mock } from 'sinon';
-import { describe, beforeEach, it } from 'mocha';
 import { CloudrailRunner } from '../../../cloudrail_runner';
 import { updateCloudrail } from '../../../commands/update';
 import { Versioning } from '../../../tools/versioning';

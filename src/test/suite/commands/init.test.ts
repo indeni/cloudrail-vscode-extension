@@ -1,7 +1,6 @@
 import vscode from 'vscode';
 import { stub, restore, mock } from 'sinon';
 import { assert } from 'chai';
-import { describe, beforeEach, it } from 'mocha';
 import { CloudrailRunner } from '../../../cloudrail_runner';
 import { initializeEnvironment } from '../../../commands/init';
 

@@ -187,7 +187,8 @@
 		"lint": "eslint src --ext ts",
 		"test": "rm -rf .nyc_output && rm -rf coverage && tsc -p . --outDir out && node ./out/test/runTest.js",
 		"test-no-compile": "node ./out/test/runTest.js",
-		"coverage": "nyc report --check-coverage --branches 80 --functions 80 --lines 80 --statements 80"
+		"coverage": "nyc report --check-coverage --branches 30 --functions 30 --lines 30 --statements 30 --reporter=html --reporter=text --reporter=text-summary",
+		"open-coverage": "open ./coverage/index.html"
 	},
 	"devDependencies": {
 		"@istanbuljs/nyc-config-typescript": "^1.0.1",
