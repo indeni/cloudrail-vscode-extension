@@ -187,9 +187,10 @@
 		"lint": "eslint src --ext ts",
 		"test": "tsc -p . --outDir out && node ./out/test/runTest.js",
 		"test-no-compile": "node ./out/test/runTest.js",
-		"ts-coverage": "typescript-coverage-report"
+		"coverage": "nyc report --check-coverage --branches 80 --functions 80 --lines 80 --statements 80"
 	},
 	"devDependencies": {
+		"@istanbuljs/nyc-config-typescript": "^1.0.1",
 		"@types/chai": "^4.2.22",
 		"@types/glob": "^7.1.4",
 		"@types/mocha": "^9.0.0",
@@ -204,12 +205,12 @@
 		"eslint": "^7.32.0",
 		"glob": "^7.1.7",
 		"mocha": "^9.1.1",
+		"nyc": "^15.1.0",
 		"sinon": "^11.1.2",
 		"ts-loader": "^9.2.5",
 		"ts-mocha": "^8.0.0",
 		"ts-node": "^10.4.0",
 		"typescript": "^4.4.3",
-		"typescript-coverage-report": "^0.6.1",
 		"webpack": "^5.52.1",
 		"webpack-cli": "^4.8.0"
 	},
