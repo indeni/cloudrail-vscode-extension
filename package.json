@@ -185,7 +185,7 @@
 		"watch-tests": "tsc -p . -w --outDir out",
 		"pretest": "npm run compile-tests && npm run compile && npm run lint",
 		"lint": "eslint src --ext ts",
-		"test": "tsc -p . --outDir out && node ./out/test/runTest.js",
+		"test": "rm -rf .nyc_output && rm -rf coverage && tsc -p . --outDir out && node ./out/test/runTest.js",
 		"test-no-compile": "node ./out/test/runTest.js",
 		"coverage": "nyc report --check-coverage --branches 80 --functions 80 --lines 80 --statements 80"
 	},
