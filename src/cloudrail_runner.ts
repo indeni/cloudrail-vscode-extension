@@ -27,7 +27,7 @@ export interface VcsInfo {
 export class CloudrailRunner {
     private static venvPath: string;
     private static sourceCmd: string;
-    private static readonly minimumCliVersion: string = '0.0.0'; // TODO: Should be the next cloudrail version
+    private static readonly minimumCliVersion: string = '1.3.836'; // TODO: Should be the next cloudrail version
 
     static init(venvBasePath: string): void {
         this.venvPath = `${path.join(venvBasePath, 'cloudrail_venv')}`;
