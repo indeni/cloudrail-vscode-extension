@@ -1,6 +1,5 @@
 import { restore } from 'sinon';
 import { assert } from 'chai';
-import { describe, beforeEach, it, afterEach } from 'mocha';
 import { Versioning } from '../../../tools/versioning';
 
 describe('Versioning unit tests', () => {

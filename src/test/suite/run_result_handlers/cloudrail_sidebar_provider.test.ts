@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import vscode, { TreeItem } from 'vscode';
 import { restore } from 'sinon';
-import { describe, beforeEach, it } from 'mocha';
 import { assert } from 'chai';
 import CloudrailSidebarProvider, { TreeViewIcon } from '../../../run_result_handlers/sidebar/cloudrail_sidebar_provider';
 import { CloudrailRunResponse } from '../../../cloudrail_runner';
