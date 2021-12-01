@@ -5,3 +5,6 @@ node_modules/.bin/js-yaml
 out
 *.vsix
 .idea
+.nyc_output
+coverage
+.coverage

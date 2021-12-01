@@ -1,6 +1,5 @@
 import vscode from 'vscode';
 import { stub, restore, mock } from 'sinon';
-import { describe, beforeEach, it } from 'mocha';
 import { Versioning } from '../../../tools/versioning';
 import * as versionCommand from '../../../commands/version';
 

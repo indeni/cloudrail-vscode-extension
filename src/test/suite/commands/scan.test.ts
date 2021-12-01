@@ -1,6 +1,5 @@
 import vscode from 'vscode';
 import { stub, restore, match } from 'sinon';
-import { describe, beforeEach, it } from 'mocha';
 import path = require('path');
 import _ from './resources/results.json';
 import * as configuration from '../../../tools/configuration';

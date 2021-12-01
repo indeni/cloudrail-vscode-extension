@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import vscode, { DiagnosticSeverity } from 'vscode';
 import { match, restore, SinonStubbedInstance, stub } from 'sinon';
-import { describe, beforeEach, it } from 'mocha';
 import { assert } from 'chai';
 import RunResultDiagnosticSubscriber from '../../../run_result_handlers/run_result_diagnostic_subscriber';
 import { RuleResult } from '../../../cloudrail_run_result_model';
