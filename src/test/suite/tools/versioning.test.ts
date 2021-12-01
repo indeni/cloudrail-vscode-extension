@@ -1,6 +1,6 @@
 import { restore } from 'sinon';
 import { assert } from 'chai';
-import { describe, beforeEach, it, afterEach } from 'mocha';
+import { describe, beforeEach, it } from 'mocha';
 import { Versioning } from '../../../tools/versioning';
 
 describe('Versioning unit tests', () => {
@@ -28,8 +28,7 @@ describe('Versioning unit tests', () => {
 
         // Act / Assert
         versionOutputs.forEach((versionOutput) => {
-            Versioning.setCloudrailVersion(versionOutput);
-            let actualVersion = Versioning.getCloudrailVersion();
+            const actualVersion = Versioning.setCloudrailVersion(versionOutput);
             assert.equal(actualVersion, expectedVersion);
         });
     });

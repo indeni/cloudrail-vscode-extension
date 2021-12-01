@@ -12,8 +12,8 @@ export function updateCloudrail(): void {
 
         try {
             await CloudrailRunner.updateCloudrail();
-            Versioning.setCloudrailVersion(await CloudrailRunner.getCloudrailVersion());
-            progress.report( { increment: 90, message: `Cloudrail version: ${Versioning.getCloudrailVersion()}`});
+            const version = Versioning.setCloudrailVersion(await CloudrailRunner.getCloudrailVersion());
+            progress.report( { increment: 90, message: `Cloudrail version: ${version}`});
             await new Promise((resolve) => setTimeout(resolve, 2000));
         } catch {
             initializeEnvironment(true);

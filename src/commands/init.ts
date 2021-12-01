@@ -31,18 +31,17 @@ export async function initializeEnvironment(showProgress: boolean): Promise<bool
             let cloudrailVersion: string | undefined;
             reportProgress(progress, showProgress, 20, 'Creating virtual environment if needed...');
             checkCancellation(token);
-            if (await CloudrailRunner.createVenv()) {
+            if (!await CloudrailRunner.createVenv()) {
                 cloudrailVersion = await installCloudrail(progress, showProgress, 10, token);
             } else {
-                cloudrailVersion = await CloudrailRunner.getCloudrailVersion();
-                if (cloudrailVersion && CloudrailRunner.isCloudrailVersionSatisfactory(cloudrailVersion)) {
+                cloudrailVersion = await CloudrailRunner.setCloudrailVersion()
+                if (CloudrailRunner.isCloudrailVersionSatisfactory(cloudrailVersion)) {
                     reportProgress(progress, showProgress, 70, 'Cloudrail already installed');
                 } else {
                     cloudrailVersion = await installCloudrail(progress, showProgress, 10, token);
                 }
             }
             
-            CloudrailRunner.setCloudrailVersion(cloudrailVersion);
             reportProgress(progress, showProgress, 10, 'Initialization complete!');
             await new Promise((resolve) => setTimeout(resolve, 2000));
             initialized = true;
@@ -69,8 +68,7 @@ export async function awaitInitialization(): Promise<void> {
 async function installCloudrail(progress: any, showProgress: boolean, increment: number, token: vscode.CancellationToken): Promise<string> {
     reportProgress(progress, showProgress, increment, 'Installing Cloudrail...');
     checkCancellation(token);
-    await CloudrailRunner.installCloudrail();
-    return (await CloudrailRunner.getCloudrailVersion())!;
+    return await CloudrailRunner.installCloudrail();
 }
 
 function reportProgress(progress: vscode.Progress<{ message?: string; increment?: number }>, 

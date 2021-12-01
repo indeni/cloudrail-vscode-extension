@@ -27,7 +27,7 @@ export interface VcsInfo {
 export class CloudrailRunner {
     private static venvPath: string;
     private static sourceCmd: string;
-    private static readonly minimumCliVersion: string = '1.3.836'; // TODO: Should be the next cloudrail version
+    private static readonly minimumCliVersion: string = '1.3.836';
 
     static init(venvBasePath: string): void {
         this.venvPath = `${path.join(venvBasePath, 'cloudrail_venv')}`;
@@ -69,13 +69,14 @@ export class CloudrailRunner {
         }
     }
 
-    static async installCloudrail(): Promise<void> {
+    static async installCloudrail(): Promise<string> {
         logger.info('Installing cloudrail pip package');
-        await this.runVenvPip('install cloudrail --no-input');
+        await this.runVenvPip('install cloudrail --upgrade --no-input');
         logger.info('Finished installing cloudrail pip package');
+        return this.setCloudrailVersion();
     }
 
-    static async setCloudrailVersion(version?: string): Promise<void> {
+    static async setCloudrailVersion(version?: string): Promise<string> {
         if (!version) {
             version = await this.getCloudrailVersion();
         }
@@ -83,6 +84,8 @@ export class CloudrailRunner {
         if (version) {
             Versioning.setCloudrailVersion(version);
         }
+
+        return Versioning.getCloudrailVersion();
     }
 
     static async updateCloudrail(): Promise<void> {
@@ -214,7 +217,7 @@ export class CloudrailRunner {
     }
 
     private static async runVenvPip(command: string): Promise<{stdout: string, stderr: string}> {
-        return await this.runVenvCommand(`python3 -m pip  ${command}`);
+        return await this.runVenvCommand(`python3 -m pip ${command}`);
     }
 
     private static async runCloudrail(command: string): Promise<{stdout: string, stderr: string}> {
