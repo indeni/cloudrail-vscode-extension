@@ -34,11 +34,11 @@ export async function initializeEnvironment(showProgress: boolean): Promise<bool
             if (!await CloudrailRunner.createVenv()) {
                 cloudrailVersion = await installCloudrail(progress, showProgress, 10, token);
             } else {
-                cloudrailVersion = await CloudrailRunner.setCloudrailVersion()
-                if (CloudrailRunner.isCloudrailVersionSatisfactory(cloudrailVersion)) {
+                cloudrailVersion = await CloudrailRunner.setCloudrailVersion();
+                if (cloudrailVersion && CloudrailRunner.isCloudrailVersionSatisfactory(cloudrailVersion)) {
                     reportProgress(progress, showProgress, 70, 'Cloudrail already installed');
                 } else {
-                    cloudrailVersion = await installCloudrail(progress, showProgress, 10, token);
+                    await installCloudrail(progress, showProgress, 10, token);
                 }
             }
             
