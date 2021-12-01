@@ -3,7 +3,7 @@
 import * as path from 'path';
 import Mocha from 'mocha';
 // @ts-ignore
-import NYC from 'nyc';
+import NYC = require('nyc');
 import * as glob from 'glob';
 
 // Simulates the recommended config option

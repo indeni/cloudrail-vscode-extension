@@ -28,12 +28,12 @@ describe('Command: Init unit tests', () => {
         showErrorMessageExpectation.verify();
     });
 
-    it('Cloudrail already installed, Initialization succeeds', async () => {
+    it('Cloudrail already installed with satisfactory version, Initialization succeeds', async () => {
         // Arrange
-        stub(CloudrailRunner, "createVenv").resolves();
+        stub(CloudrailRunner, "createVenv").resolves(true);
         stub(CloudrailRunner, "isPythonInstalled").resolves(true);
-        stub(CloudrailRunner, "getCloudrailVersion").resolves('1.2.3');
-        stub(CloudrailRunner, "setCloudrailVersion").resolves();
+        stub(CloudrailRunner, "setCloudrailVersion").resolves('1.2.3');
+        stub(CloudrailRunner, "isCloudrailVersionSatisfactory").returns(true);
 
         const installCloudrailExpectation = mock(CloudrailRunner).expects("installCloudrail").never();
 
@@ -45,11 +45,28 @@ describe('Command: Init unit tests', () => {
         installCloudrailExpectation.verify();
     }).timeout(10000);
 
+    it('Cloudrail already installed with non-satisfactory version, Initialization succeeds', async () => {
+        // Arrange
+        stub(CloudrailRunner, "createVenv").resolves(true);
+        stub(CloudrailRunner, "isPythonInstalled").resolves(true);
+        stub(CloudrailRunner, "getCloudrailVersion").resolves('1.2.3');
+        stub(CloudrailRunner, "setCloudrailVersion").resolves('1.2.3');
+        stub(CloudrailRunner, "isCloudrailVersionSatisfactory").returns(false);
+
+        const installCloudrailExpectation = mock(CloudrailRunner).expects("installCloudrail").once();
+
+        // Act
+        const initialized = await initializeEnvironment(true);
+
+        // Assert
+        assert.isTrue(initialized);
+        installCloudrailExpectation.verify();
+    }).timeout(10000);
+
     it('Cloudrail not installed, Initialization succeeds', async () => {
         // Arrange
-        stub(CloudrailRunner, "createVenv").resolves();
+        stub(CloudrailRunner, "createVenv").resolves(true);
         stub(CloudrailRunner, "isPythonInstalled").resolves(true);
-        stub(CloudrailRunner, "getCloudrailVersion").resolves();
         stub(CloudrailRunner, "setCloudrailVersion").resolves();
         let installCloudrailStub = stub(CloudrailRunner, "installCloudrail").resolves();
 
@@ -75,7 +92,7 @@ describe('Command: Init unit tests', () => {
 
     it('getCloudrailVersion throws exception, Initialization fails', async () => {
         // Arrange 
-        stub(CloudrailRunner, "createVenv").resolves();
+        stub(CloudrailRunner, "createVenv").resolves(true);
         stub(CloudrailRunner, "isPythonInstalled").resolves(true);
         stub(CloudrailRunner, "getCloudrailVersion").throws('');
 
@@ -88,7 +105,7 @@ describe('Command: Init unit tests', () => {
 
     it('installCloudrail throws exception, Initialization fails', async () => {
         // Arrange 
-        stub(CloudrailRunner, "createVenv").resolves();
+        stub(CloudrailRunner, "createVenv").resolves(true);
         stub(CloudrailRunner, "isPythonInstalled").resolves(true);
         stub(CloudrailRunner, "getCloudrailVersion").resolves();
         stub(CloudrailRunner, "installCloudrail").throws('');
@@ -102,7 +119,7 @@ describe('Command: Init unit tests', () => {
 
     it('setCloudrailVersion throws exception, Initialization fails', async () => {
         // Arrange 
-        stub(CloudrailRunner, "createVenv").resolves();
+        stub(CloudrailRunner, "createVenv").resolves(true);
         stub(CloudrailRunner, "isPythonInstalled").resolves(true);
         stub(CloudrailRunner, "getCloudrailVersion").resolves('1.2.3');
         stub(CloudrailRunner, "setCloudrailVersion").throws('');
