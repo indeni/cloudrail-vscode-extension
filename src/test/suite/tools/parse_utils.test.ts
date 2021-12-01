@@ -1,6 +1,5 @@
 
 import { restore } from 'sinon';
-import { describe, beforeEach, it } from 'mocha';
 import { EvidenceFormat, parseEvidence, parseHtmlLinks, toTitle } from '../../../tools/parse_utils';
 import { assert } from 'chai';
 

@@ -22,4 +22,5 @@ jobs:
         uses: GabrielBB/xvfb-action@v1
         with:
           run: npm run test
-      
+      - name: Create coverage report
+        run: npm run coverage
