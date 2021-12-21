@@ -1,4 +1,5 @@
 import vscode from 'vscode';
+import os from 'os';
 import { CloudrailRunner } from './cloudrail_runner';
 import { cloudrailVersion } from './commands/version';
 import scan from './commands/scan';
@@ -25,7 +26,12 @@ export function activate(context: vscode.ExtensionContext) {
 		sidebarProvider
 	]);
 	
-	CloudrailRunner.init(context.globalStorageUri.path);
+	let venvBasePath = context.globalStorageUri.path;
+	if (os.platform() === 'win32') {
+		venvBasePath = venvBasePath.slice(1);
+	}
+	
+	CloudrailRunner.init(venvBasePath);
 	initializeEnvironment(false);
 
 	const commands = [
