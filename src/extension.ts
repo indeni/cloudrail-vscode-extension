@@ -27,7 +27,8 @@ export function activate(context: vscode.ExtensionContext) {
 	]);
 	
 	let venvBasePath = context.globalStorageUri.path;
-	if (os.platform() === 'win32') {
+	if (os.platform() === 'win32' && venvBasePath.startsWith('/')) {
+		// On windows this path starts with / which is not a legal path
 		venvBasePath = venvBasePath.slice(1);
 	}
 	
