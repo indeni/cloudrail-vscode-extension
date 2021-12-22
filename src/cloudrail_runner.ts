@@ -28,10 +28,15 @@ export class CloudrailRunner {
     private static venvPath: string;
     private static sourceCmd: string;
     private static readonly minimumCliVersion: string = '1.3.836';
+    private static pythonAlias: string;
 
     static init(venvBasePath: string): void {
         this.venvPath = `${path.join(venvBasePath, 'cloudrail_venv')}`;
-        this.sourceCmd = `source "${this.venvPath}/bin/activate"`;
+        if (os.platform() === 'win32') {
+            this.sourceCmd = `${this.venvPath}\\Scripts\\activate.bat`;
+        } else {
+            this.sourceCmd = `source "${this.venvPath}/bin/activate"`;
+        }
     }
 
     static async createVenv(): Promise<boolean> {
@@ -43,7 +48,7 @@ export class CloudrailRunner {
             logger.info('Venv does not exist, creating..');
             await util.promisify(fs.mkdir)(this.venvPath, { recursive: true });
             logger.info('Creating venv dir');
-            await this.asyncExec(`python3 -m venv "${this.venvPath}"`);
+            await this.asyncExec(`${CloudrailRunner.pythonAlias} -m venv "${this.venvPath}"`);
             logger.info('Created venv');
             return false;
         }
@@ -57,7 +62,8 @@ export class CloudrailRunner {
                 return Promise.reject(versionOutput.stderr);
             };
 
-            let cloudrailInstallPath = await this.runVenvCommand('which cloudrail');
+            let cloudrailPathCommand = os.platform() === 'win32' ? 'where cloudrail' : 'which cloudrail';
+            let cloudrailInstallPath = await this.runVenvCommand(cloudrailPathCommand);
             if (!cloudrailInstallPath.stdout.startsWith(this.venvPath)) {
                 return;
             }
@@ -172,25 +178,37 @@ export class CloudrailRunner {
 
     static async getApiKey(): Promise<string> {
         try {
-            return (await this.runCloudrail('config info | grep api_key | awk \'{print $2}\'')).stdout.replace('\n', '');
+            const getApiKeyCmd = os.platform() === 'win32' ? 'config info | findstr api_key' : 'config info | grep api_key';  
+            const apiKeyPair = await this.runCloudrail(getApiKeyCmd);
+            return apiKeyPair.stdout.split(' ')[1].replace('\n', '').replace('\r', '');
         } catch {
             return '';
         }
     }
 
-    static async isPythonInstalled(): Promise<boolean> {
-        try {
-            const version = (await this.asyncExec('python3 --version')).stdout.split(' ')[1];
-            logger.debug(`Response from running "python3 --version": ${version}`);
-            return version.startsWith('3.8') || version.startsWith('3.9');
-        } catch {
-            logger.info('Python is not installed');
-            return false;
+    static async initPythonAlias(): Promise<boolean> {
+        for (const alias of ['py', 'python', 'python3', 'Python']) {
+            try {
+                const version = (await this.asyncExec(`${alias} --version`)).stdout.split(' ')[1];
+                logger.debug(`Response from running "${alias} --version": ${version}`);
+                if (version.startsWith('3.8') || version.startsWith('3.9')) {
+                    CloudrailRunner.pythonAlias = alias;
+                    return true;
+                }
+            } catch {}
         }
+
+        logger.info('Python is not installed');
+        return false;
     }
 
     static isCloudrailVersionSatisfactory(version: string): boolean {
-        return semver.gte(version, this.minimumCliVersion);
+        try {
+            return semver.gte(version, this.minimumCliVersion);
+        } catch {
+            return false;
+        }
+        
     }
 
     private static asyncExec(command: string): Promise<{stdout: string, stderr: string}> {
@@ -202,7 +220,7 @@ export class CloudrailRunner {
         try {
             await this.asyncExec(this.sourceCmd);
             return true;
-        } catch {
+        } catch  {
             return false;
         }
     }
@@ -217,7 +235,7 @@ export class CloudrailRunner {
     }
 
     private static async runVenvPip(command: string): Promise<{stdout: string, stderr: string}> {
-        return await this.runVenvCommand(`python3 -m pip ${command}`);
+        return await this.runVenvCommand(`${CloudrailRunner.pythonAlias} -m pip ${command}`);
     }
 
     private static async runCloudrail(command: string): Promise<{stdout: string, stderr: string}> {

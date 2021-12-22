@@ -55,7 +55,7 @@ export default class RunResultDiagnosticSubscriber implements RunResultsSubscrib
 
     private async getDocumentFromIssueItem(issueItem: IssueItem, terraformWorkingDirectory: string): Promise<vscode.TextDocument> {
         const iacMetadata = issueItem.violating_entity.iac_resource_metadata;
-        const docPath = path.join(terraformWorkingDirectory, iacMetadata.file_name);
+        const docPath = path.isAbsolute(iacMetadata.file_name) ? iacMetadata.file_name : path.join(terraformWorkingDirectory, iacMetadata.file_name);
         return await vscode.workspace.openTextDocument(docPath);
     }
 

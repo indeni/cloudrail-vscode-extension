@@ -22,7 +22,7 @@ export async function initializeEnvironment(showProgress: boolean): Promise<bool
         cancellable: true
     }, async (progress, token) => {
 
-        if (!await CloudrailRunner.isPythonInstalled()) {
+        if (!await CloudrailRunner.initPythonAlias()) {
             vscode.window.showErrorMessage('Missing prerequisite: python. please install either python3.8, or python3.9 from https://www.python.org/downloads/');
             return;
         }
