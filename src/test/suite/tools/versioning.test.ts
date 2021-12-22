@@ -6,6 +6,7 @@ describe('Versioning unit tests', () => {
 
     beforeEach(() => {
         restore();
+        Versioning.resetCloudrailVersion();
     });
 
     it('getCloudrailVersion when version is not set', async () => {

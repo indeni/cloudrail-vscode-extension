@@ -5,21 +5,25 @@ export class Versioning {
 
     static setCloudrailVersion(cloudrailVersionOutput: string | undefined): string {
         if (cloudrailVersionOutput !== undefined) {
-            Versioning.cloudrailVersion = cloudrailVersionOutput.split(/[\n\r\s]+/)[2];
+            this.cloudrailVersion = cloudrailVersionOutput.split(/[\n\r\s]+/)[2];
         }
 
-        return Versioning.cloudrailVersion;
+        return this.cloudrailVersion;
     }
 
     static getCloudrailVersion(): string {
-        if (Versioning.cloudrailVersion === undefined) {
-            return `Not installed`;
-        } else {
-            return Versioning.cloudrailVersion;
+        if (this.cloudrailVersion === undefined) {
+            this.resetCloudrailVersion();
         }
+
+        return this.cloudrailVersion;
     }
 
     static getExtensionVersion(): string {
         return vscode.extensions.getExtension("Cloudrail.cloudrail-iac-scanning")?.packageJSON['version'];
+    }
+
+    static resetCloudrailVersion(): void {
+        this.cloudrailVersion = 'Not installed';
     }
 }

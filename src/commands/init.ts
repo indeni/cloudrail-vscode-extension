@@ -14,7 +14,7 @@ export async function initializeEnvironment(showProgress: boolean): Promise<bool
         return isLastInitializationSucceeded;
     }
     
-    isInitializationInProgress = true;
+    setIsInitializationInProgress(true);
     let initialized = false;
 
     await vscode.window.withProgress({
@@ -53,8 +53,8 @@ export async function initializeEnvironment(showProgress: boolean): Promise<bool
         }
     });
 
-    isInitializationInProgress = false; 
-    isLastInitializationSucceeded = initialized; 
+    setIsInitializationInProgress(false); 
+    setIsLastInitializationSucceeded(initialized);
     logger.info('Initialization succeeded? ' + initialized);
     return initialized;
 }
@@ -69,6 +69,14 @@ async function installCloudrail(progress: any, showProgress: boolean, increment:
     reportProgress(progress, showProgress, increment, 'Installing Cloudrail...');
     checkCancellation(token);
     return await CloudrailRunner.installCloudrail();
+}
+
+export function setIsLastInitializationSucceeded(val: boolean): void {
+    isLastInitializationSucceeded = val;
+}
+
+export function setIsInitializationInProgress(val: boolean): void {
+    isInitializationInProgress = val;
 }
 
 function reportProgress(progress: vscode.Progress<{ message?: string; increment?: number }>, 
