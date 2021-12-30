@@ -1,0 +1,38 @@
+name: Slack-Notification
+env:
+  SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+on:
+  push:
+    branches:
+      - "*"
+  pull_request:
+    branches:
+       - "*"
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Upload to S3
+        run:
+           aws s3 cp ${{ secrets.AWS_SLACK_BUCKET }} ${{ secrets.SLACK_FILE }}
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.S3_ACCESS_KEY_SLACK }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.S3_SECRET_KEY_SLACK }}
+          AWS_DEFAULT_REGION: 'us-east-1'
+      - name: Slack User
+        id: slackuser
+        run:
+           echo "::set-output name=username::$(grep ${{ github.event.pusher.email }} ${{ secrets.SLACK_FILE }} | awk '{print $3}')"
+      - name: Check slack
+        uses: act10ns/slack@v1
+        env:
+          user: ${{ steps.slackuser.outputs.username }}
+        with:
+           status: ${{ job.status }}
+           channel: '@${{ env.user }}'
+           message: Release body of ${{ github.ref }} ${{ env.user }}
+                    ${{ github.event.commits[0].author.name }}
+                    ${{ github.event.commits[0].message }}
+
+        if: failure()
