@@ -1,4 +1,4 @@
-name: Slack-Notification
+name: slack-notification
 env:
   SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
 on:
@@ -8,6 +8,10 @@ on:
   pull_request:
     branches:
        - "*"
+  release:
+    branches:
+       - main
+    
 jobs:
   build:
     runs-on: ubuntu-latest
