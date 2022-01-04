@@ -11,6 +11,8 @@ on:
   release:
     branches:
        - main
+    types:
+       - "*"
     
 jobs:
   build:
