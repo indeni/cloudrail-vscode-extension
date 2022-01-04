@@ -31,7 +31,7 @@ jobs:
           user: ${{ steps.slackuser.outputs.username }}
         with:
            status: ${{ job.status }}
-           channel: '@${{ env.user }}'
+           channel: '#cloudrail-dev'
            message: Release body of ${{ github.ref }} ${{ env.user }}
                     ${{ github.event.commits[0].author.name }}
                     ${{ github.event.commits[0].message }}
