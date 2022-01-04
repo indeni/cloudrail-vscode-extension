@@ -20,9 +20,8 @@ jobs:
 
     steps:
       - name: Upload to S3
-        run:
+        run: |
            aws --version
-           aws help
            aws s3 cp ${{ secrets.AWS_SLACK_BUCKET }} ${{ secrets.SLACK_FILE }}
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.S3_ACCESS_KEY_SLACK }}
