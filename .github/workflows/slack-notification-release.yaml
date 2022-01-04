@@ -1,4 +1,4 @@
-name: slack-notification
+name: slack-notification-release
 env:
   SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
 on:
@@ -37,3 +37,4 @@ jobs:
                     ${{ github.event.commits[0].message }}
 
         if: always()
+        
