@@ -1,0 +1,25 @@
+name: slack-notification-release
+
+on:
+  release:
+    types: [published,created,released]
+
+jobs:
+  build:
+  
+    runs-on: ubuntu-latest
+    
+    steps:
+
+      - name: Send notificationto slack if failure
+        uses: act10ns/slack@v1
+        env:
+         SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        with:
+           status: ${{ job.status }}
+           channel: '#cloudrail-dev'
+           message: Release body of ${{ github.ref }} ${{ env.user }}
+                    ${{ github.event.commits[0].author.name }}
+                    ${{ github.event.commits[0].message }}
+
+        if: failure()
