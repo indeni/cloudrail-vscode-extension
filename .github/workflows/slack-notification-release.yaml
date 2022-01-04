@@ -2,11 +2,10 @@ name: slack-notification
 env:
   SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
 on:
-  push:
+  release:
     branches:
-      - "*"
-  pull_request:
-    branches:
+       - main
+    types:
        - "*"
 
 jobs:
@@ -37,4 +36,4 @@ jobs:
                     ${{ github.event.commits[0].author.name }}
                     ${{ github.event.commits[0].message }}
 
-        if: failure()
+        if: always()
