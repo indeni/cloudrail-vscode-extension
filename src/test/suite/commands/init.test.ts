@@ -2,7 +2,7 @@ import vscode from 'vscode';
 import { stub, restore, mock } from 'sinon';
 import { assert } from 'chai';
 import { CloudrailRunner } from '../../../cloudrail_runner';
-import { initializeEnvironment } from '../../../commands/init';
+import { awaitInitialization, initializeEnvironment, setIsInitializationInProgress, setIsLastInitializationSucceeded } from '../../../commands/init';
 
 describe('Command: Init unit tests', () => {
     
@@ -129,5 +129,36 @@ describe('Command: Init unit tests', () => {
 
         // Assert
         assert.isNotTrue(initialized);
+    });
+
+    it('initialization returns response from already-running init process', async () => {
+        // Arrange
+        setIsInitializationInProgress(true);
+        new Promise<void>(() => setTimeout(() => {
+            setIsLastInitializationSucceeded(true);
+            setIsInitializationInProgress(false);
+        }, 1000));
+
+        // Act
+        const initialized = await initializeEnvironment(true);
+
+        // Assert
+        assert.isTrue(initialized);
+    });
+
+    it('awaitInitialization', async () => {
+        // Arrange
+        setIsInitializationInProgress(true);
+        new Promise<void>(() => setTimeout(() => {
+            setIsInitializationInProgress(false);
+        }, 1000));
+
+        // Act
+        const start = new Date().getTime();
+        await awaitInitialization();
+        const end = new Date().getTime();
+
+        // Assert
+        assert.isTrue((end - start)/1000 > 1);
     });
 });

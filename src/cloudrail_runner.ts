@@ -33,7 +33,7 @@ export class CloudrailRunner {
     static init(venvBasePath: string): void {
         this.venvPath = `${path.join(venvBasePath, 'cloudrail_venv')}`;
         if (os.platform() === 'win32') {
-            this.sourceCmd = `${this.venvPath}\\Scripts\\activate.bat`;
+            this.sourceCmd = `${this.venvPath}/Scripts/activate.bat`;
         } else {
             this.sourceCmd = `source "${this.venvPath}/bin/activate"`;
         }
@@ -144,7 +144,7 @@ export class CloudrailRunner {
         const runCommand = `${CloudrailRunner.sourceCmd} && cloudrail run ${runArgs.join(' ')}`;
         this.logRunCommand(runCommand);
         const run = shell.exec(runCommand, { async: true });
-
+        
         run.stdout?.on('data', (data: string) => {
             logger.info(`Cloudrail run stdout: ${data}`);
             stdout += data;
@@ -211,12 +211,7 @@ export class CloudrailRunner {
         
     }
 
-    private static asyncExec(command: string): Promise<{stdout: string, stderr: string}> {
-        logger.info(`asyncExec command: ${command}`);
-        return util.promisify(exec)(command);
-    }
-
-    private static async venvExists(): Promise<boolean> {
+    static async venvExists(): Promise<boolean> {
         try {
             await this.asyncExec(this.sourceCmd);
             return true;
@@ -225,13 +220,18 @@ export class CloudrailRunner {
         }
     }
 
-    private static async isPipInstalledInVenv(): Promise<boolean> {
+    static async isPipInstalledInVenv(): Promise<boolean> {
         try {
             await this.runVenvPip('--version');
             return true;
         } catch {
             return false;
         }
+    }
+
+    private static asyncExec(command: string): Promise<{stdout: string, stderr: string}> {
+        logger.info(`asyncExec command: ${command}`);
+        return util.promisify(exec)(command);
     }
 
     private static async runVenvPip(command: string): Promise<{stdout: string, stderr: string}> {
@@ -249,12 +249,12 @@ export class CloudrailRunner {
     private static logRunCommand(command: string): void {
         const logPrefix = 'Cloudrail Run command:';
         const splitted = command.split(' ');
-        const index2 = splitted.indexOf('--api-key');
+        const index = splitted.indexOf('--api-key');
 
-        if (index2 === -1) {
+        if (index === -1) {
             logger.info(`${logPrefix} ${command}`);
         } else {
-            splitted[index2+1] = splitted[index2+1].slice(0, 4) + '*******';
+            splitted[index+1] = splitted[index+1].slice(0, 4) + '*******';
             logger.info(`${logPrefix} ${splitted.join(' ')}`);
         }
     }
